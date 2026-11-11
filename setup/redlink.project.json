@@ -1,0 +1,22 @@
+{
+  "name": "RedLink by Codered",
+  "template": "redlink",
+  "database": { "provider": "supabase", "migrations": ["supabase/migrations/0001_schema.sql", "supabase/migrations/0002_functions.sql", "supabase/migrations/0003_cleanup_job.sql"] },
+  "hosting": { "provider": "netlify", "build": "node scripts/make-config.js", "publish": "dist" },
+  "env": { "SUPABASE_URL": "{{supabase.url}}", "SUPABASE_ANON_KEY": "{{supabase.publishable_key}}" },
+  "questions": [
+    { "id": "mode", "type": "choice", "label": "Who can create RedLinks?", "options": ["open", "pin", "auth"] },
+    { "id": "pin", "type": "secret", "label": "PIN", "minLength": 4, "confirm": true, "showIf": { "mode": "pin" } },
+    { "id": "adminEmail", "type": "email", "label": "Administrator email", "showIf": { "mode": "auth" } }
+  ],
+  "actions": {
+    "open": ["sql: select public.redlink_mode('open')"],
+    "pin":  ["sql: update public.redlink_settings set mode='pin', pin_hash='{{sha256(\"redlink-pin:\" + pin)}}' where id=1", "sql: delete from public.redlink_pin_fails"],
+    "auth": ["auth.invite: {{adminEmail}}", "auth.disable_signups", "sql: insert into public.redlink_users(email) values (lower('{{adminEmail}}')) on conflict do nothing", "sql: select public.redlink_mode('auth')"]
+  },
+  "healthChecks": [
+    { "rpc": "get_redlink_mode", "expect": "{{mode}}" },
+    { "rpc": "get_redlink_meta", "args": { "p_id": "healthcheck-none" }, "expect": null },
+    { "http": "{{site.url}}/config.js", "contains": "REDLINK_CONFIG" }
+  ]
+}

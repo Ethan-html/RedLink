@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RedLink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #140d11;
+    --panel: #1e151a;
+    --raised: #2a1d24;
+    --line: #3d2b34;
+    --text: #f5eef0;
+    --muted: #b49ea7;
+    --red: #ff4d5e;
+    --red-soft: #ff8a93;
+    --ember: #ff8a5b;
+    --good: #5fe3b0;
+    --warn: #ffc266;
+    --head: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "Inter", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--body);
+    line-height: 1.5;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px;
+    overflow-x: hidden;
+  }
+
+  .orb { position: fixed; border-radius: 50%; filter: blur(95px); pointer-events: none; z-index: 0; will-change: transform; }
+  .orb.a { width: 420px; height: 420px; background: var(--red); opacity: .28; top: -140px; left: -110px; animation: drift-a 19s ease-in-out infinite; }
+  .orb.b { width: 360px; height: 360px; background: var(--ember); opacity: .2; bottom: -150px; right: -100px; animation: drift-b 23s ease-in-out infinite; }
+  .orb.c { width: 280px; height: 280px; background: #d6336c; opacity: .16; top: 42%; left: 58%; animation: drift-c 27s ease-in-out infinite; }
+  @keyframes drift-a {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(200px, 70px) scale(1.12); }
+    50% { transform: translate(130px, 240px) scale(.94); }
+    75% { transform: translate(-30px, 150px) scale(1.08); }
+  }
+  @keyframes drift-b {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    30% { transform: translate(-190px, -60px) scale(1.1); }
+    60% { transform: translate(-90px, -230px) scale(.95); }
+    80% { transform: translate(60px, -120px) scale(1.06); }
+  }
+  @keyframes drift-c {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-220px, 90px) scale(1.15); }
+    66% { transform: translate(-120px, -150px) scale(.9); }
+  }
+
+  .card {
+    position: relative; z-index: 1;
+    width: min(560px, 100%);
+    background: color-mix(in srgb, var(--panel) 90%, transparent);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 34px 32px 30px;
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,.7);
+    animation: rise .8s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(26px) scale(.98); } }
+
+  .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+  .mark { width: 50px; height: 50px; flex: none; overflow: visible; }
+  .mark rect { transform-box: fill-box; transform-origin: center; transition: transform .6s cubic-bezier(.3,1.5,.5,1); }
+  .mark .l1 { transform: translateX(-4px); }
+  .mark .l2 { transform: translateX(4px); }
+  .card.sealed .mark rect { transform: translateX(0); }
+  .card.broken .mark .l1 { transform: translate(-11px, 3px) rotate(-14deg); }
+  .card.broken .mark .l2 { transform: translate(11px, -3px) rotate(14deg); }
+  h1 { font-family: var(--head); font-weight: 700; font-size: 1.9rem; letter-spacing: -.02em; margin: 0; line-height: 1.05; }
+  .by { color: var(--muted); font-size: .85rem; }
+  .by b { color: var(--red-soft); font-weight: 500; }
+  .by a { color: inherit; text-decoration: none; border-radius: 4px; }
+  .by a:hover b { text-decoration: underline; text-underline-offset: 3px; }
+  .by a:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+  label, .label { display: block; font-size: .86rem; font-weight: 500; color: var(--muted); margin: 0 0 7px; }
+  .field { margin-bottom: 18px; }
+  textarea, input[type="text"], input[type="password"], input[type="email"] {
+    width: 100%;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font: inherit;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input.mono { font-family: var(--mono); letter-spacing: .01em; }
+  textarea { min-height: 112px; resize: vertical; }
+  textarea::placeholder, input::placeholder { color: #6e5a63; }
+  textarea:focus, input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 4px rgba(255,77,94,.15); }
+  .slug { display: flex; align-items: center; background: var(--ink); border: 1px solid var(--line); border-radius: 12px; transition: border-color .2s, box-shadow .2s; }
+  .slug:focus-within { border-color: var(--red); box-shadow: 0 0 0 4px rgba(255,77,94,.15); }
+  .slug { cursor: text; }
+  .slug .prefix { display: flex; align-items: center; flex: none; max-width: 65%; overflow: hidden; white-space: nowrap; transition: width .38s cubic-bezier(.65,0,.35,1), opacity .25s, transform .38s cubic-bezier(.65,0,.35,1); }
+  .slug.collapsed .prefix { width: 0 !important; opacity: 0; transform: translateX(-14px); }
+  .slug .host { padding-left: 14px; font-family: var(--mono); color: var(--muted); opacity: .6; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+  .slug .sl { font-family: var(--mono); color: var(--text); flex: none; }
+  .slug input { flex: 1; min-width: 0; border: 0; background: transparent; box-shadow: none !important; padding-left: 14px; font-family: var(--mono); transition: padding-left .38s cubic-bezier(.65,0,.35,1); }
+  .slug:not(.collapsed) input { padding-left: 2px; }
+  .slug input:focus { border: 0; }
+  .invalid { border-color: var(--warn) !important; animation: shake .35s; }
+  @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  .err { color: var(--warn); font-size: .88rem; min-height: 1.3em; margin: -6px 0 10px; }
+  .note { color: var(--muted); font-size: .92rem; margin: 0 0 18px; }
+  .who { margin-top: 18px; font-size: .85rem; color: var(--muted); }
+  .linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--red-soft); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .linkbtn:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; border-radius: 3px; }
+
+  .btn {
+    position: relative; overflow: hidden;
+    width: 100%; margin-top: 6px;
+    border: 0; border-radius: 13px;
+    padding: 14px 18px;
+    font: 700 1.02rem var(--head);
+    color: #2b0509;
+    background: linear-gradient(135deg, var(--red), var(--red-soft));
+    cursor: pointer;
+    transition: transform .15s, box-shadow .25s, filter .2s;
+    box-shadow: 0 10px 30px -12px rgba(255,77,94,.65);
+  }
+  .btn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.5) 50%, transparent 70%); transform: translateX(-120%); }
+  .btn:hover::after { transform: translateX(120%); transition: transform .7s; }
+  .btn:hover { box-shadow: 0 14px 36px -10px rgba(255,77,94,.8); }
+  .btn:active { transform: scale(.98); }
+  .btn:focus-visible, .ghost:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+  .btn[disabled] { filter: saturate(.4) brightness(.8); cursor: progress; }
+  .ghost {
+    display: inline-block; text-decoration: none;
+    border: 1px solid var(--line); background: var(--raised); color: var(--text);
+    border-radius: 11px; padding: 10px 16px; font: 500 .95rem var(--body); cursor: pointer;
+    transition: border-color .2s, transform .15s;
+  }
+  .ghost:hover { border-color: var(--red); }
+  .ghost:active { transform: scale(.97); }
+
+  .steps { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 4px; }
+  .steps li { display: flex; align-items: center; gap: 12px; padding: 8px 4px; color: #75606a; transition: color .3s; position: relative; }
+  .steps li:not(:last-child)::before { content: ""; position: absolute; left: 14px; top: 32px; width: 2px; height: 12px; background: var(--line); transition: background .4s; }
+  .steps li[data-state="done"]:not(:last-child)::before { background: var(--good); }
+  .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; display: grid; place-items: center; margin-left: 3px; transition: all .3s; }
+  .steps li[data-state="active"] { color: var(--text); }
+  .steps li[data-state="active"] .dot { border-top-color: var(--red); animation: spin .7s linear infinite; }
+  .steps li[data-state="done"] { color: var(--muted); }
+  .steps li[data-state="done"] .dot { background: var(--good); border-color: var(--good); }
+  .steps li[data-state="done"] .dot::after { content: ""; width: 5px; height: 9px; border: solid #08281c; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); animation: pop .3s; }
+  .steps li[data-state="error"] { color: var(--warn); }
+  .steps li[data-state="error"] .dot { border-color: var(--warn); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pop { from { transform: rotate(45deg) scale(0); } }
+
+  /* verdict row + animated badge (green = OK, red = wrong) */
+  .ok { display: flex; align-items: center; gap: 18px; margin-bottom: 26px; }
+  .badge { --c: var(--good); --c2: var(--red-soft); --glow: rgba(95,227,176,.4); --glow2: rgba(95,227,176,.58); position: relative; width: 58px; height: 58px; flex: none; }
+  .badge.bad { --c: var(--red); --c2: var(--ember); --glow: rgba(255,77,94,.45); --glow2: rgba(255,77,94,.65); }
+  .badge::before {
+    content: ""; position: absolute; inset: 4px; border-radius: 50%;
+    box-shadow: 0 0 26px 4px var(--glow);
+    opacity: 0; animation: glow-in .5s .35s forwards, breathe 3.2s 1s ease-in-out infinite;
+  }
+  .badge svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 12px var(--glow)); }
+  .badge .disc { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: pop-disc .6s cubic-bezier(.3,1.6,.5,1) .05s forwards; }
+  .badge .sheen { fill: rgba(255,255,255,.28); transform-box: fill-box; transform-origin: center; transform: scale(0); animation: pop-disc .6s cubic-bezier(.3,1.6,.5,1) .1s forwards; }
+  .badge .tick { fill: none; stroke: #052a1c; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: draw .4s ease .5s forwards; }
+  .badge.bad .tick { stroke: #fff; }
+  .badge .ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--c); opacity: 0; animation: ring-out 1s ease-out .4s forwards; }
+  .badge .ring.r2 { animation-delay: .6s; }
+  .badge .spark { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: var(--c); opacity: 0; transform: rotate(var(--a)) translateY(0); animation: spark .8s ease-out .45s forwards; }
+  .badge .spark:nth-of-type(even) { background: var(--c2); width: 4px; height: 4px; margin: -2px 0 0 -2px; }
+  @keyframes pop-disc { to { transform: scale(1); } }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes glow-in { to { opacity: 1; } }
+  @keyframes breathe { 50% { box-shadow: 0 0 34px 8px var(--glow2); } }
+  @keyframes ring-out { 0% { transform: scale(.9); opacity: .7; } 100% { transform: scale(2.3); opacity: 0; } }
+  @keyframes spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(-16px); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-42px); } }
+  .ok .txt strong { font-family: var(--head); font-size: 1.6rem; display: block; line-height: 1.1; }
+  .ok .txt span { color: var(--muted); font-size: .92rem; }
+  .ok.deny .txt strong { color: var(--red-soft); }
+
+  .chip { display: inline-block; font-family: var(--mono); font-size: .85rem; color: var(--red-soft); background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 3px 10px; margin-bottom: 16px; overflow-wrap: anywhere; }
+  .key {
+    font-family: var(--mono); font-weight: 600;
+    font-size: clamp(1.15rem, 4.6vw, 1.6rem);
+    background: var(--ink); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px 18px; text-align: center;
+    overflow-wrap: anywhere; color: var(--red-soft);
+    box-shadow: inset 0 0 40px rgba(255,77,94,.07);
+  }
+  .msg {
+    font-family: var(--mono); font-size: .95rem; line-height: 1.55;
+    background: var(--ink); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 18px; white-space: pre-wrap; overflow-wrap: anywhere;
+    max-height: 260px; overflow: auto; color: var(--text);
+    box-shadow: inset 0 0 40px rgba(255,77,94,.07);
+  }
+  .key-meta { color: var(--red-soft); font-size: .9rem; margin: 12px 2px 18px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .demo { margin-top: 14px; font-size: .8rem; color: var(--ember); }
+
+  /* loader (chain links close and open) + invalid-link states */
+  .loader { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px; padding: 22px 0 12px; }
+  .loader-art { position: relative; width: 168px; height: 107px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .loader-art::before { content: ""; position: absolute; left: 50%; top: 50%; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; background: radial-gradient(circle, rgba(255,77,94,.38), transparent 68%); animation: glow-pulse 1.8s ease-in-out infinite; }
+  .loader-art svg { position: relative; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 16px rgba(255,77,94,.45)); }
+  .loader-art .k1, .loader-art .k2 { transform-box: fill-box; transform-origin: center; }
+  .loader-art .k1 { animation: link-l 1.8s cubic-bezier(.65,0,.35,1) infinite; }
+  .loader-art .k2 { animation: link-r 1.8s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes link-l { 0%, 100% { transform: translateX(-13px); } 50% { transform: translateX(3px); } }
+  @keyframes link-r { 0%, 100% { transform: translateX(13px); } 50% { transform: translateX(-3px); } }
+  @keyframes glow-pulse { 0%, 100% { opacity: .4; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.1); } }
+  .loader-text { font-family: var(--head); font-weight: 500; font-size: 1.25rem; line-height: 1.3; min-height: 1.6em; }
+  .loader-text.swap { animation: fade .45s both; }
+  .loader-bar { width: min(240px, 70%); height: 4px; border-radius: 99px; background: var(--raised); overflow: hidden; }
+  .loader-bar i { display: block; height: 100%; width: 40%; border-radius: inherit; background: linear-gradient(90deg, var(--red), var(--ember)); animation: sweep 1.3s ease-in-out infinite; }
+  @keyframes sweep { from { transform: translateX(-110%); } to { transform: translateX(270%); } }
+  .gone { text-align: center; padding: 6px 0 2px; }
+  .gone svg { width: 150px; height: 80px; overflow: visible; }
+  .gone .b1, .gone .b2 { transform-box: fill-box; transform-origin: center; }
+  .gone .b1 { transform: translateX(11px); animation: break-l 1s cubic-bezier(.3,1.3,.5,1) .35s forwards; }
+  .gone .b2 { transform: translateX(-11px); animation: break-r 1s cubic-bezier(.3,1.3,.5,1) .35s forwards; }
+  .gone .crack { fill: none; stroke: var(--warn); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; opacity: 0; animation: crack .5s ease .25s forwards; }
+  @keyframes break-l { to { transform: translate(-12px, 4px) rotate(-16deg); } }
+  @keyframes break-r { to { transform: translate(12px, -4px) rotate(16deg); } }
+  @keyframes crack { 0% { opacity: 1; stroke-dashoffset: 60; } 60% { opacity: 1; } 100% { opacity: 0; stroke-dashoffset: 0; } }
+  .gone strong { display: block; font-family: var(--head); font-size: 1.55rem; margin: 10px 0 6px; line-height: 1.15; }
+  .gone p { color: var(--muted); margin: 0 auto 20px; max-width: 40ch; }
+
+  /* can't reach the database */
+  .offline { text-align: center; padding: 6px 0 2px; }
+  .offline svg { width: 160px; height: 110px; overflow: visible; }
+  .offline .dbx { transform-box: fill-box; transform-origin: center; animation: bob 3.6s ease-in-out infinite; }
+  .offline .wire { animation: flicker 2.6s steps(1) infinite; }
+  .offline .cross { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: pop-disc .55s cubic-bezier(.3,1.6,.5,1) .3s forwards; }
+  @keyframes bob { 50% { transform: translateY(-5px); } }
+  @keyframes flicker { 0%, 100% { opacity: 1; } 12% { opacity: .15; } 22% { opacity: .9; } 34% { opacity: .1; } 58% { opacity: .75; } 64% { opacity: .1; } 80% { opacity: 1; } }
+  .offline strong { display: block; font-family: var(--head); font-size: 1.55rem; margin: 12px 0 6px; line-height: 1.15; }
+  .offline p { color: var(--muted); margin: 0 auto 14px; max-width: 42ch; }
+  .offline .tech { display: block; width: fit-content; max-width: 100%; margin: 0 auto 20px; font-family: var(--mono); font-size: .78rem; color: var(--warn); background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px; overflow-wrap: anywhere; }
+  .offline .btn { width: auto; min-width: 190px; margin-top: 0; padding: 12px 28px; }
+
+  /* manage button (create screen, users-only mode) */
+  .manage { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; padding: 13px 16px; border: 1px solid #6a2630; border-radius: 15px; text-decoration: none; color: var(--text); background: linear-gradient(135deg, rgba(255,77,94,.18), rgba(255,138,91,.07)); box-shadow: 0 10px 28px -16px rgba(255,77,94,.7); transition: transform .15s, border-color .2s, box-shadow .25s; }
+  .manage:hover { border-color: var(--red); transform: translateY(-1px); box-shadow: 0 14px 32px -14px rgba(255,77,94,.85); }
+  .manage:active { transform: scale(.985); }
+  .manage:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+  .manage .mi { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 11px; background: rgba(255,77,94,.16); color: var(--red-soft); }
+  .manage .mt { display: grid; line-height: 1.25; }
+  .manage .mt b { font-family: var(--head); font-size: 1.02rem; }
+  .manage .mt small { color: var(--muted); font-size: .82rem; }
+  .manage .chev { margin-left: auto; color: var(--red-soft); flex: none; }
+
+  /* admin */
+  .card.wide { width: min(720px, 100%); }
+  .adm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .adm-head h2 { font-family: var(--head); font-size: 1.4rem; letter-spacing: -.01em; margin: 0; line-height: 1.1; }
+  .adm-count { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+  .adm-tools { display: flex; gap: 8px; }
+  .ghost.sm { padding: 7px 13px; font-size: .86rem; }
+  .links { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .lk { position: relative; display: flex; align-items: center; gap: 14px; background: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; transition: border-color .2s, opacity .35s, transform .35s; }
+  .lk:hover { border-color: #5a3f4b; }
+  .lk .main { flex: 1; min-width: 0; }
+  .lk .name { font-family: var(--mono); font-weight: 600; color: var(--red-soft); overflow-wrap: anywhere; }
+  .lk .meta { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 2px; color: var(--muted); font-size: .82rem; }
+  .lk .meta .hot { color: var(--warn); }
+  .burn { position: relative; flex: none; min-width: 146px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #6a2630; background: rgba(255,77,94,.1); color: var(--red-soft); border-radius: 11px; padding: 9px 14px; font: 700 .9rem var(--head); cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; --p: 0; transition: background .2s, border-color .2s, color .2s; }
+  .burn:hover { background: rgba(255,77,94,.2); border-color: var(--red); }
+  .burn:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+  .burn .fw { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
+  .burn .fire { position: absolute; left: -12%; right: -12%; bottom: 0; height: calc(var(--p) * 125%); background: linear-gradient(0deg, #e5233a 0%, #ff5a3c 40%, #ff9a4a 75%, #ffd27a 100%); border-radius: 50% 50% 0 0 / 24% 24% 0 0; transform-origin: bottom; animation: lick .3s ease-in-out infinite alternate; }
+  @keyframes lick { from { transform: scaleX(1) skewX(-4deg); } to { transform: scaleX(1.05) skewX(4deg); } }
+  .burn .ic, .burn .lbl { position: relative; z-index: 1; }
+  .burn .ic { display: inline-flex; transform: scale(calc(1 + var(--p) * .6)); transform-origin: 50% 85%; }
+  .burn.armed { border-color: var(--red); animation: armed-pulse 1.2s ease-in-out infinite; }
+  @keyframes armed-pulse { 50% { box-shadow: 0 0 0 4px rgba(255,77,94,.24); } }
+  .burn.holding { color: #fff; border-color: var(--ember); animation: none; box-shadow: 0 0 calc(var(--p) * 32px) calc(var(--p) * 5px) rgba(255,110,60,calc(.2 + var(--p) * .6)); }
+  .burn.holding .lbl { text-shadow: 0 1px 8px rgba(80,0,10,.75); }
+  .burn[disabled] { cursor: progress; }
+  .ember { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #ffb15e; box-shadow: 0 0 8px 2px rgba(255,138,91,.8); pointer-events: none; z-index: 2; animation: ember-rise var(--d, .8s) ease-out forwards; }
+  @keyframes ember-rise { from { opacity: 1; transform: translate(0, 0) scale(1); } to { opacity: 0; transform: translate(var(--dx, 0), var(--dy, -46px)) scale(.2); } }
+  .lk.torched { animation: torch 1s ease-in forwards; }
+  @keyframes torch {
+    25% { border-color: var(--ember); background: #3a1a14; box-shadow: 0 0 34px 4px rgba(255,110,60,.55); }
+    60% { opacity: .9; filter: brightness(1.6) saturate(1.4); }
+    100% { opacity: 0; transform: translateY(-10px) scaleY(.4); filter: brightness(2) blur(3px); box-shadow: 0 0 50px 10px rgba(255,138,91,0); }
+  }
+  .adm-empty { text-align: center; color: var(--muted); padding: 26px 0 8px; }
+
+  /* Password-manager / browser autofill: keep the dark look */
+  input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text); caret-color: var(--text);
+    box-shadow: 0 0 0 1000px var(--ink) inset; border-color: var(--line);
+    transition: background-color 9999s ease-in-out 0s;
+  }
+  .autofill-user { position: absolute; left: -9999px; top: 0; width: 200px; height: 24px; }
+
+  /* Codered tribute (easter egg) */
+  .cr { position: fixed; inset: 0; z-index: 50; display: grid; justify-items: center; overflow-x: hidden; overflow-y: auto; background: radial-gradient(circle at 50% 58%, #4a1019, var(--ink) 68%); clip-path: circle(0 at var(--cx, 50%) var(--cy, 50%)); }
+  .cr.on { animation: cr-in .75s cubic-bezier(.7,0,.2,1) forwards; }
+  .cr.out { animation: cr-out .65s cubic-bezier(.7,0,.3,1) .4s both; }
+  @keyframes cr-in { to { clip-path: circle(150vmax at var(--cx, 50%) var(--cy, 50%)); } }
+  @keyframes cr-out { from { clip-path: circle(150vmax at var(--cx, 50%) var(--cy, 50%)); } to { clip-path: circle(0 at var(--cx, 50%) var(--cy, 50%)); } }
+  .cr, .cr * { user-select: none; -webkit-user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+  .cr::before { content: ""; position: fixed; inset: 0; pointer-events: none; background-image: radial-gradient(rgba(255,175,165,.6) 1px, transparent 1.6px); background-size: 30px 30px; -webkit-mask-image: radial-gradient(330px circle at 50% 46%, #000, transparent); mask-image: radial-gradient(330px circle at 50% 46%, #000, transparent); }
+  .cr::after { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(460px circle at 50% 46%, rgba(255,77,94,.17), transparent 70%); }
+  .cr::after { animation: cr-breathe 6s ease-in-out infinite; }
+  @keyframes cr-breathe { 50% { opacity: .6; } }
+  .cr-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .cr-x { position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 3; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 80%, transparent); color: var(--text); font: 500 1rem var(--body); cursor: pointer; transition: border-color .2s, transform .3s; }
+  .cr-x:hover { border-color: var(--red); transform: rotate(90deg); }
+  .cr-x:focus-visible, .cr-markwrap:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+  .cr-core { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 64px 16px 40px; width: min(760px, 100%); margin: auto 0; }
+  .cr-markwrap { position: relative; width: 150px; height: 96px; padding: 0; border: 0; background: none; border-radius: 16px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+  .cr-markwrap:active { cursor: grabbing; }
+  .cr-markwrap svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 18px rgba(255,77,94,.55)); pointer-events: none; }
+  .cr-markwrap .a, .cr-markwrap .b { transform-box: fill-box; transform-origin: center; opacity: 0; transition: translate .35s cubic-bezier(.3,1.5,.5,1); }
+  .cr.on .cr-markwrap .a { animation: cr-snap-l .75s cubic-bezier(.3,1.4,.5,1) .2s forwards; }
+  .cr.on .cr-markwrap .b { animation: cr-snap-r .75s cubic-bezier(.3,1.4,.5,1) .2s forwards; }
+  @keyframes cr-snap-l { from { opacity: 0; transform: translateX(-80px) rotate(-28deg); } to { opacity: 1; transform: none; } }
+  @keyframes cr-snap-r { from { opacity: 0; transform: translateX(80px) rotate(28deg); } to { opacity: 1; transform: none; } }
+  .cr-markwrap.pull .a { translate: -20px 0; }
+  .cr-markwrap.pull .b { translate: 20px 0; }
+  .cr-markwrap.snap svg { animation: cr-flash .6s ease; }
+  @keyframes cr-flash { 30% { filter: drop-shadow(0 0 40px rgba(255,138,91,1)) brightness(1.6); } }
+  .cr-ring { position: absolute; left: 50%; top: 50%; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; border: 2px solid var(--red); opacity: 0; pointer-events: none; }
+  .cr.on .cr-ring { animation: cr-ring 1s ease-out .85s forwards; }
+  .cr.on .cr-ring.r2 { animation-delay: 1.05s; }
+  @keyframes cr-ring { from { opacity: .8; transform: scale(.7); } to { opacity: 0; transform: scale(3.2); } }
+  .cr-word { font-family: var(--head); font-weight: 700; font-size: clamp(2.8rem, 13vw, 5.4rem); letter-spacing: -.03em; line-height: 1.05; filter: drop-shadow(0 0 22px rgba(255,77,94,.5)); cursor: default; transition: letter-spacing .6s cubic-bezier(.2,.8,.2,1), filter .5s; }
+  .cr-word:hover { letter-spacing: .02em; filter: drop-shadow(0 0 36px rgba(255,77,94,.9)); }
+  .cr-word span { display: inline-block; opacity: 0; background: linear-gradient(180deg, #fff 8%, #ff9aa2 50%, #ff4d5e 100%); -webkit-background-clip: text; background-clip: text; color: transparent; transition: translate .25s cubic-bezier(.3,1.6,.5,1); }
+  .cr.on .cr-word span { animation: cr-letter .65s cubic-bezier(.2,.9,.2,1) calc(.45s + var(--i) * .07s) forwards; }
+  @keyframes cr-letter { from { opacity: 0; transform: translateY(46px) scale(.8); filter: blur(10px); } to { opacity: 1; transform: none; filter: blur(0); } }
+  .cr-line { height: 3px; width: 0; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--red), var(--ember), transparent); }
+  .cr.on .cr-line { animation: cr-line .8s ease 1.05s forwards; }
+  @keyframes cr-line { to { width: min(360px, 70vw); } }
+  .cr-tag { min-height: 1.6em; margin: 6px 0 0; color: var(--muted); font-size: 1rem; text-align: center; }
+  .cr-tag::after { content: ""; display: inline-block; width: 2px; height: 1em; margin-left: 3px; vertical-align: -.12em; background: var(--red); animation: cr-blink 1s steps(2) infinite; }
+  @keyframes cr-blink { 50% { opacity: 0; } }
+  .cr-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; margin-top: 14px; perspective: 800px; }
+  .cr-tile { cursor: pointer; --rx: 0deg; --ry: 0deg; --gx: 50%; --gy: 50%; position: relative; overflow: hidden; padding: 16px; text-align: left; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--panel) 78%, transparent); backdrop-filter: blur(8px); transform: rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .15s ease-out, border-color .2s; }
+  .cr-tile::before { content: ""; position: absolute; inset: 0; background: radial-gradient(180px circle at var(--gx) var(--gy), rgba(255,77,94,.24), transparent 70%); opacity: 0; transition: opacity .25s; pointer-events: none; }
+  .cr-tile:hover { border-color: var(--red); }
+  .cr-tile:hover::before { opacity: 1; }
+  .cr-tile b { position: relative; display: block; margin-bottom: 4px; font: 700 1rem var(--head); }
+  .cr-tile span { position: relative; color: var(--muted); font-size: .86rem; }
+  .cr-contact { display: inline-flex; align-items: center; gap: 10px; margin-top: 12px; padding: 13px 26px; border: 1px solid var(--red); border-radius: 999px; background: rgba(255,77,94,.12); color: var(--text); font: 600 1rem var(--head); text-decoration: none; transform: translate(var(--tx, 0px), var(--ty, 0px)); transition: background .25s, color .25s, box-shadow .25s, transform .18s ease-out; }
+  .cr-contact span { display: inline-block; transition: transform .25s; }
+  .cr-contact:hover { background: linear-gradient(135deg, var(--red), var(--red-soft)); color: #2b0509; box-shadow: 0 12px 34px -12px rgba(255,77,94,.8); }
+  .cr-contact:hover span { transform: translateX(5px); }
+  .cr-contact:active { transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(.97); }
+  .cr-contact:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+  .cr.on .cr-tag, .cr.on .cr-badge, .cr.on .cr-tile, .cr.on .cr-contact, .cr.on .cr-x { animation: cr-up .6s cubic-bezier(.2,.8,.2,1) var(--d, 1s) both; }
+  .cr-tile:nth-child(2) { --d: 1.15s; } .cr-tile:nth-child(3) { --d: 1.3s; }
+  .cr-contact { --d: 1.45s; }
+  @keyframes cr-up { from { opacity: 0; translate: 0 16px; } }
+  /* closing: chain snaps, letters fly off, then the screen irises shut onto the link you clicked */
+  .cr.out .cr-markwrap .a { animation: cr-out-l .5s cubic-bezier(.5,0,.8,.4) both; }
+  .cr.out .cr-markwrap .b { animation: cr-out-r .5s cubic-bezier(.5,0,.8,.4) both; }
+  @keyframes cr-out-l { to { opacity: 0; transform: translate(-90px, 18px) rotate(-30deg); } }
+  @keyframes cr-out-r { to { opacity: 0; transform: translate(90px, -18px) rotate(30deg); } }
+  .cr.out .cr-word span { animation: cr-letter-out .55s cubic-bezier(.5,0,.8,.4) calc(var(--i) * .045s) both; }
+  @keyframes cr-letter-out { to { opacity: 0; transform: translateY(-70px) scale(.7) rotate(calc(var(--i) * 6deg - 18deg)); filter: blur(10px); } }
+  .cr.out .cr-line { animation: cr-line-out .3s ease both; }
+  @keyframes cr-line-out { from { width: min(360px, 70vw); } to { width: 0; } }
+  .cr.out .cr-tag, .cr.out .cr-badge, .cr.out .cr-tile, .cr.out .cr-contact, .cr.out .cr-x { animation: cr-down-out .35s ease both; }
+  @keyframes cr-down-out { to { opacity: 0; translate: 0 22px; } }
+  .cr.out .cr-canvas { animation: cr-down-out .4s ease .3s both; }
+  /* easter eggs */
+  .cr .cr-tile.burn { animation: cr-burn 1.6s ease both; }
+  @keyframes cr-burn {
+    20% { border-color: var(--ember); background: #3a1a14; box-shadow: 0 0 34px 4px rgba(255,110,60,.55); }
+    60% { opacity: .9; filter: brightness(1.6) saturate(1.4); }
+    100% { opacity: 0; translate: 0 -10px; filter: brightness(2) blur(3px); }
+  }
+  .cr-markwrap.shake svg { animation: cr-shake .5s ease; }
+  @keyframes cr-shake { 20% { transform: translateX(-9px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
+  /* all eggs found: finale + slightly different look */
+  .cr-badge { --d: .1s; padding: 4px 14px; border: 1px solid #ffb24d; border-radius: 999px; color: #ffd9a0; background: rgba(255,178,77,.1); font: .78rem var(--mono); letter-spacing: .02em; }
+  .cr-finale { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .cr-finale i { position: fixed; left: var(--fx, 50%); top: var(--fy, 40%); width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; border: 2px solid #ffb24d; opacity: 0; }
+  .cr-finale.go i { animation: cr-shock 1.7s cubic-bezier(.2,.7,.2,1) calc(var(--n) * .24s) both; }
+  @keyframes cr-shock { from { opacity: .95; } to { opacity: 0; width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax; } }
+  .cr.finale .cr-word { filter: drop-shadow(0 0 60px rgba(255,190,90,1)) brightness(1.5); }
+  .cr.master { background: radial-gradient(circle at 50% 58%, #4a2a10, var(--ink) 68%); }
+  .cr.master::before { background-image: radial-gradient(rgba(255,210,150,.65) 1px, transparent 1.6px); }
+  .cr.master::after { background: radial-gradient(460px circle at 50% 46%, rgba(255,178,77,.18), transparent 70%); }
+  .cr.master .cr-word span { background: linear-gradient(180deg, #fff 8%, #ffe0a3 50%, #ffb24d 100%); -webkit-background-clip: text; background-clip: text; }
+  .cr.master .cr-word { filter: drop-shadow(0 0 22px rgba(255,178,77,.5)); }
+  .cr.master .cr-word:hover { filter: drop-shadow(0 0 36px rgba(255,178,77,.9)); }
+  .cr.master .cr-line { background: linear-gradient(90deg, transparent, #ffb24d, #fff0cf, transparent); }
+  .cr.master .cr-markwrap svg g { stroke: #ffb24d; }
+  .cr.master .cr-ring { border-color: #ffb24d; }
+  .cr.master .cr-tile:hover { border-color: #ffb24d; }
+  @media (max-width: 640px) { .cr-tiles { grid-template-columns: 1fr; } }
+
+  [hidden] { display: none !important; }
+  .fade-in { animation: fade .5s both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } }
+
+  @media (max-width: 480px) { .card { padding: 26px 20px 24px; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="orb a"></div><div class="orb b"></div><div class="orb c"></div>
+
+<main class="card" id="card">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 50 50" aria-hidden="true">
+      <g fill="none" stroke="#ff4d5e" stroke-width="4.5" stroke-linecap="round">
+        <rect class="l1" x="5" y="16" width="25" height="18" rx="9"/>
+        <rect class="l2" x="20" y="16" width="25" height="18" rx="9"/>
+      </g>
+    </svg>
+    <div>
+      <h1>RedLink</h1>
+      <div class="by">made by <a href="#codered" role="button" aria-haspopup="dialog"><b>Codered</b></a></div>
+    </div>
+  </div>
+
+  <div class="loader" id="boot" role="status">
+    <div class="loader-art"><svg viewBox="0 0 132 84" aria-hidden="true"><g fill="none" stroke="#ff4d5e" stroke-width="6" stroke-linecap="round"><rect class="k1" x="18" y="22" width="62" height="40" rx="20"/><rect class="k2" x="52" y="22" width="62" height="40" rx="20"/></g></svg></div>
+    <span class="sr-only">Loading…</span>
+    <div class="loader-bar"><i></i></div>
+  </div>
+
+  <!-- ===================== GATE (PIN or sign-in) ===================== -->
+  <div id="gateView" hidden>
+    <form id="pinForm" name="pin-gate" method="post" action="#" novalidate hidden>
+      <p class="note">Enter the PIN to create a RedLink.</p>
+      <!-- Lets password managers save and fill the PIN under a name -->
+      <input class="autofill-user" type="text" name="username" id="pinUser" value="RedLink PIN" autocomplete="username" tabindex="-1" aria-hidden="true">
+      <div class="field">
+        <label for="pin">PIN</label>
+        <input type="password" class="mono" id="pin" name="pin" autocomplete="current-password" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+      </div>
+      <div class="err" id="pinErr" role="alert"></div>
+      <button class="btn" id="pinGo" type="submit">Unlock</button>
+    </form>
+
+    <form id="loginForm" name="sign-in" method="post" action="#" novalidate hidden>
+      <p class="note" id="loginNote">Sign in to create a RedLink.</p>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false" enterkeyhint="next">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" enterkeyhint="go">
+      </div>
+      <div class="err" id="loginErr" role="alert"></div>
+      <button class="btn" id="loginGo" type="submit">Sign in</button>
+    </form>
+  </div>
+
+  <!-- ===================== CREATE VIEW ===================== -->
+  <div id="createView" hidden>
+    <a class="manage" id="manageBtn" href="/admin" hidden>
+      <span class="mi"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg></span>
+      <span class="mt"><b>Manage links</b><small>See every live link and burn the ones you don’t need</small></span>
+      <svg class="chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </a>
+    <form id="form" novalidate>
+      <div class="field">
+        <label for="message">Message or password</label>
+        <textarea id="message" maxlength="50000" placeholder="Type or paste what you want to seal" autocomplete="off" spellcheck="false"></textarea>
+      </div>
+      <div class="field">
+        <label for="slug">Link name</label>
+        <div class="slug" id="slugBox"><span class="prefix" id="prefix"><span class="host" id="host"></span><span class="sl">/</span></span><input type="text" id="slug" maxlength="64" placeholder="my-link" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+      </div>
+      <div class="err" id="err" role="alert"></div>
+      <button class="btn" id="go" type="submit">Create RedLink</button>
+    </form>
+
+    <ol class="steps" id="steps" hidden>
+      <li data-step="salt"><span class="dot"></span>Generate salt</li>
+      <li data-step="encrypt"><span class="dot"></span>Encrypt with AES-256-GCM</li>
+      <li data-step="checksum"><span class="dot"></span>Build checksum</li>
+      <li data-step="save"><span class="dot"></span>Save to database</li>
+    </ol>
+
+    <section id="result" hidden>
+      <div class="ok">
+        <div class="badge" id="okBadge" aria-hidden="true"></div>
+        <div class="txt"><strong>OK</strong><span>The database confirmed the save.</span></div>
+      </div>
+      <div class="chip" id="chip"></div>
+      <div class="label">Your passkey</div>
+      <div class="key" id="key" aria-live="polite"></div>
+      <div class="key-meta" id="keyMeta"></div>
+      <div class="actions">
+        <button class="ghost" id="copy" type="button">Copy passkey</button>
+        <button class="ghost" id="again" type="button">Create another</button>
+      </div>
+      <div class="demo" id="demo" hidden>Demo mode: nothing was sent. Add your Supabase URL and key in the script to go live.</div>
+    </section>
+
+    <div class="who" id="who" hidden><span id="whoText"></span> · <button class="linkbtn" id="signOut" type="button">Sign out</button></div>
+  </div>
+
+  <!-- ===================== OPEN VIEW ===================== -->
+  <div id="openView" hidden>
+    <div class="loader" id="checking" role="status" aria-live="polite">
+      <div class="loader-art"><svg viewBox="0 0 132 84" aria-hidden="true"><g fill="none" stroke="#ff4d5e" stroke-width="6" stroke-linecap="round"><rect class="k1" x="18" y="22" width="62" height="40" rx="20"/><rect class="k2" x="52" y="22" width="62" height="40" rx="20"/></g></svg></div>
+      <span class="sr-only" id="checkingText">Looking up this link…</span>
+      <div class="loader-bar"><i></i></div>
+    </div>
+
+    <form id="openForm" novalidate hidden>
+      <div class="ok deny" id="deny" hidden role="alert">
+        <div class="badge bad" id="denyBadge" aria-hidden="true"></div>
+        <div class="txt"><strong>Wrong passkey</strong><span id="denyText"></span></div>
+      </div>
+      <div class="field">
+        <label for="passkey">Passkey</label>
+        <input type="text" class="mono" id="passkey" placeholder="Maple-River-Cloud-482" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="err" id="openErr" role="alert"></div>
+      <button class="btn" id="openGo" type="submit">Open RedLink</button>
+    </form>
+
+    <ol class="steps" id="openSteps" hidden>
+      <li data-step="derive"><span class="dot"></span>Check passkey</li>
+      <li data-step="claim"><span class="dot"></span>Unlock the link</li>
+      <li data-step="decrypt"><span class="dot"></span>Decrypt message</li>
+    </ol>
+
+    <section id="opened" hidden>
+      <div class="ok">
+        <div class="badge" id="openBadge" aria-hidden="true"></div>
+        <div class="txt"><strong>Unlocked</strong><span>This RedLink is now deleted from the database.</span></div>
+      </div>
+      <div class="label">Message</div>
+      <div class="msg" id="msg"></div>
+      <div class="key-meta">Copy it now. You can’t revisit this.</div>
+      <div class="actions">
+        <button class="ghost" id="copyMsg" type="button">Copy message</button>
+      </div>
+    </section>
+
+    <section class="gone" id="gone" hidden>
+      <svg viewBox="0 0 150 80" aria-hidden="true">
+        <g fill="none" stroke="#ff4d5e" stroke-width="6" stroke-linecap="round">
+          <rect class="b1" x="14" y="20" width="62" height="40" rx="20"/>
+          <rect class="b2" x="74" y="20" width="62" height="40" rx="20"/>
+        </g>
+        <path class="crack" d="M75 6l-6 17 10 8-8 16 6 12"/>
+      </svg>
+      <strong id="goneTitle">This link isn’t valid</strong>
+      <p id="goneText">It may have been opened already, expired after 7 days, or never existed.</p>
+      <a class="ghost" id="newLink" href="/">Create a RedLink</a>
+    </section>
+  </div>
+
+  <!-- ===================== CAN'T REACH THE DATABASE ===================== -->
+  <section class="offline" id="offlineView" hidden role="alert">
+    <svg viewBox="0 0 160 110" aria-hidden="true">
+      <path class="wire" d="M8 52h30M122 52h30" fill="none" stroke="#ffc266" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 9"/>
+      <g class="dbx" fill="none" stroke="#ffc266" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="80" cy="28" rx="29" ry="10"/>
+        <path d="M51 28v21c0 5.5 13 10 29 10s29-4.5 29-10V28"/>
+        <path d="M51 49v21c0 5.5 13 10 29 10s29-4.5 29-10V49"/>
+      </g>
+      <g class="cross">
+        <circle cx="113" cy="80" r="15" fill="#ff4d5e"/>
+        <path d="M107 74l12 12M119 74l-12 12" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <strong id="offTitle">Can’t reach the database</strong>
+    <p id="offText">RedLink couldn’t connect to its server. Check your connection, then try again.</p>
+    <span class="tech" id="offTech" hidden></span>
+    <button class="btn" id="offRetry" type="button">Try again</button>
+  </section>
+
+  <!-- ===================== ADMIN (users-only mode) ===================== -->
+  <div id="adminView" hidden>
+    <div class="adm-head">
+      <div>
+        <h2>Live RedLinks</h2>
+        <div class="adm-count" id="admCount"></div>
+      </div>
+      <div class="adm-tools">
+        <button class="ghost sm" id="admRefresh" type="button">Refresh</button>
+        <a class="ghost sm" id="admBack" href="/">Create a link</a>
+      </div>
+    </div>
+    <div class="err" id="admErr" role="alert"></div>
+    <ul class="links" id="admList"></ul>
+    <div class="adm-empty" id="admEmpty" hidden>No live RedLinks right now.</div>
+    <div class="who"><span id="admWho"></span> · <button class="linkbtn" id="admSignOut" type="button">Sign out</button></div>
+  </div>
+
+  <section class="gone" id="admOff" hidden>
+    <strong>Admin is turned off</strong>
+    <p id="admOffText">The admin page only works in users-only mode. In Supabase, run select redlink_mode('auth'); to turn it on.</p>
+    <a class="ghost" id="admOffBack" href="/">Back to RedLink</a>
+  </section>
+</main>
+
+<div class="cr" id="cr" role="dialog" aria-modal="true" aria-label="A tribute to Codered" hidden>
+  <canvas class="cr-canvas" id="crCanvas" aria-hidden="true"></canvas>
+  <div class="cr-finale" id="crFinale" aria-hidden="true"><i style="--n:0"></i><i style="--n:1"></i><i style="--n:2"></i></div>
+  <button class="cr-x" id="crClose" type="button" aria-label="Close">&#10005;</button>
+  <div class="cr-core">
+    <button class="cr-markwrap" id="crMark" type="button" aria-label="The RedLink chain. Press and hold to pull the links apart." title="Hold me">
+      <span class="cr-ring"></span><span class="cr-ring r2"></span>
+      <svg viewBox="0 0 132 84" aria-hidden="true"><g fill="none" stroke="#ff4d5e" stroke-width="6" stroke-linecap="round"><rect class="a" x="18" y="22" width="62" height="40" rx="20"/><rect class="b" x="52" y="22" width="62" height="40" rx="20"/></g></svg>
+    </button>
+    <div class="cr-word" id="crWord" aria-label="Codered"></div>
+    <div class="cr-line"></div>
+    <p class="cr-tag" id="crTag"></p>
+    <div class="cr-badge" id="crBadge" hidden></div>
+    <div class="cr-tiles">
+      <div class="cr-tile" data-egg="seal"><b>Sealed here</b><span>Encrypted in your browser with AES-256-GCM. The server only ever sees scrambled text.</span></div>
+      <div class="cr-tile" data-egg="burn"><b>Read once</b><span>Open a link and it is deleted. Too many wrong tries and it burns itself.</span></div>
+      <div class="cr-tile" data-egg="expire"><b>Gone in 7 days</b><span>Anything nobody opens disappears on its own after a week.</span></div>
+    </div>
+    <a class="cr-contact" id="crContact" href="https://techduck.com/codered" target="_blank" rel="noopener">Meet Codered <span aria-hidden="true">&rarr;</span></a>
+</div>
+</div>
+
+<script src="config.js"></script>
+<script>
+/* ---------- Settings ---------- */
+// URL and publishable key come from config.js, which the Netlify build writes from the
+// SUPABASE_URL and SUPABASE_ANON_KEY environment variables. With no config the page runs
+// in demo mode. The publishable key is safe in a web page (the migrations lock every table).
+// NEVER use the secret / service_role key.
+const CFG = window.REDLINK_CONFIG || {};          // written at deploy time into config.js
+const SUPABASE_URL = CFG.url || "";
+const SUPABASE_ANON_KEY = CFG.key || "";
+// Who can CREATE links (opening a link with its passkey is always public):
+//   "auto" : show whatever screen matches the database's current mode (easiest:
+//            switch modes in Supabase only, with  select redlink_mode('pin','1234');)
+//   "open" : anyone can create
+//   "pin"  : a PIN is needed to see the create screen
+//   "auth" : sign in first, and only approved accounts can create
+// This only picks which screen to show. The database enforces its own mode on
+// every create (PIN or sign-in token sent with the request), so editing this in
+// a browser does not get anyone past it.
+const CREATE_MODE = "auto";
+const WORD_COUNT = 3;          // words in the passkey (3 gives Maple-River-Cloud-482)
+const PBKDF2_ITERATIONS = 600000;
+
+/* ---------- Word list ---------- */
+const WORDS = [...new Set(`maple river cloud amber arctic aspen autumn badger basil beacon birch bison breeze bridge brook cactus canyon cedar cherry cliff clover cobalt comet copper coral cricket crystal dawn delta desert dolphin dune eagle ember falcon feather fern fjord flint forest fox frost garnet glacier granite grove harbor hazel heron hickory hill horizon indigo iris island ivory jade jasper juniper kelp kestrel lagoon lantern larch lark lemon lilac linden lotus lunar magnet marble meadow mesa meteor mist moss mountain nectar nimbus oak oasis ocean olive onyx orchid osprey otter owl panther pebble pine planet plum pond prairie quartz quill rain raven reef ridge robin rowan saffron sage salmon sand sequoia shadow silver sky slate snow sparrow spruce stone storm summit sunset swan thistle thunder tiger timber topaz trail tulip tundra valley velvet violet walnut water willow winter wren yarrow zephyr zinc`.split(/\s+/))];
+
+/* ---------- Helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function randInt(max) { // unbiased random integer in [0, max)
+  const limit = Math.floor(0x100000000 / max) * max;
+  const buf = new Uint32Array(1);
+  do { crypto.getRandomValues(buf); } while (buf[0] >= limit);
+  return buf[0] % max;
+}
+function makePasskey() {
+  const words = Array.from({ length: WORD_COUNT }, () => {
+    const w = WORDS[randInt(WORDS.length)];
+    return w[0].toUpperCase() + w.slice(1);
+  });
+  return [...words, String(100 + randInt(900))].join("-");
+}
+// Typing it in lowercase, with spaces, or with extra whitespace still works.
+const norm = (p) => p.trim().toLowerCase().replace(/[\s_]+/g, "-");
+// The only shape a real passkey can have: WORD_COUNT words, then 3 digits (Maple-River-Cloud-482).
+// Anything else is rejected in the browser, so it never reaches the database or counts as a try.
+const PASSKEY_RE = new RegExp("^(?:[a-z]+-){" + WORD_COUNT + "}[0-9]{3}$");
+const isPasskeyFormat = (p) => PASSKEY_RE.test(norm(p));
+
+function b64u(bytes) {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64uDecode(str) {
+  let s = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+}
+async function sha256Hex(str) {
+  const d = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)));
+  return [...d].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/* ---------- Crypto ---------- */
+// One PBKDF2 run gives 512 bits from the passkey + salt:
+//   first 256 bits  -> the AES-256-GCM key (never leaves the browser)
+//   last  256 bits  -> a "proof" that only the right passkey can produce
+// The database stores only a hash of the proof (the verifier), so it can check
+// a passkey without ever learning it or the key.
+async function deriveSecrets(passkey, saltBytes) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(norm(passkey)), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt: saltBytes, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" }, base, 512
+  ));
+  const aesKey = await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-GCM", false, ["encrypt", "decrypt"]);
+  return { aesKey, proof: b64u(bits.slice(32)) };
+}
+
+// salt.encodedchecksum: the salt, a dot, then the SHA-256 of the "salt.encodedtext" string
+async function checksumOf(encryptedText) {
+  const saltStr = encryptedText.split(".")[0];
+  const d = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(encryptedText)));
+  return saltStr + "." + b64u(d);
+}
+
+// The link name is bound into the encryption (as GCM "additional data"), so a
+// stored blob only opens under the same id it was created with.
+async function seal(plaintext, passkey, id, onStep, gate) {
+  const enc = new TextEncoder();
+
+  onStep("salt");
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  await Promise.all([sleep(350), gate ? gate() : null]);   // a failed gate (taken name) stops here
+
+  onStep("encrypt");
+  const { aesKey, proof } = await deriveSecrets(passkey, salt);
+  const ct = new Uint8Array(await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv, additionalData: enc.encode(id) }, aesKey, enc.encode(plaintext)
+  ));
+  const blob = new Uint8Array(iv.length + ct.length); // iv, then ciphertext + auth tag
+  blob.set(iv); blob.set(ct, iv.length);
+  const encryptedText = b64u(salt) + "." + b64u(blob);
+  const verifier = await sha256Hex(proof);
+  await sleep(250);
+
+  onStep("checksum");
+  const encryptedChecksum = await checksumOf(encryptedText);
+  await sleep(350);
+
+  return { encryptedText, encryptedChecksum, verifier };
+}
+
+async function decryptSealed(encryptedText, aesKey, id) {
+  const blob = b64uDecode(encryptedText.split(".")[1]);
+  const pt = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: blob.slice(0, 12), additionalData: new TextEncoder().encode(id) }, aesKey, blob.slice(12)
+  );
+  return new TextDecoder().decode(pt);
+}
+
+/* ---------- Database calls (Supabase functions) ---------- */
+class TakenError extends Error {}
+class GateError extends Error { constructor(status) { super(status); this.status = status; } }
+async function rpc(fn, args, token) {
+  const res = await fetch(SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/rpc/" + fn, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_ANON_KEY,
+      // A signed-in user's token goes in Authorization (this is the proof the database checks).
+      // Otherwise legacy JWT-style keys (start with "eyJ") go there too.
+      // New sb_publishable_ keys are not JWTs and must only use the apikey header.
+      ...(token ? { Authorization: "Bearer " + token }
+          : SUPABASE_ANON_KEY.startsWith("eyJ") ? { Authorization: "Bearer " + SUPABASE_ANON_KEY } : {})
+    },
+    body: JSON.stringify(args)
+  });
+  let data = null;
+  try { data = await res.json(); } catch { /* empty body */ }
+  return { ok: res.ok, status: res.status, data };
+}
+const configured = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+async function saveToDb({ id, encryptedText, encryptedChecksum, verifier }) {
+  if (!configured()) {
+    await sleep(800);
+    return { demo: true, dateCreated: new Date().toISOString() };
+  }
+  // The proof of access travels with the payload: the PIN (pin mode) or the
+  // signed-in user's token (auth mode). The database re-checks it on every create.
+  const token = MODE === "auth" ? await getToken() : null;
+  if (MODE === "auth" && !token) throw new GateError("login");
+  const r = await rpc("create_redlink", {
+    p_id: id, p_encrypted_text: encryptedText, p_encrypted_checksum: encryptedChecksum, p_verifier: verifier,
+    p_pin: MODE === "pin" ? pinValue : null
+  }, token);
+  if (r.status === 409) throw new TakenError("That link name is already taken. Pick another one.");
+  if (!r.ok) throw new Error("The database answered with status " + r.status + ".");
+  if (r.data && r.data.status && r.data.status !== "ok") throw new GateError(r.data.status);
+  return { demo: false, dateCreated: r.data && r.data.created_at }; // server-stamped created_at
+}
+
+// Asks the database whether the link name is free. Runs in the background while the
+// first step plays, so a taken name stops everything before any real work happens.
+async function checkName(id) {
+  if (!configured()) return;
+  const token = MODE === "auth" ? await getToken() : null;
+  if (MODE === "auth" && !token) throw new GateError("login");
+  const r = await rpc("check_redlink_name", { p_id: id, p_pin: MODE === "pin" ? pinValue : null }, token);
+  if (r.status === 404) return;            // older setup file: the save step still guards the name
+  if (!r.ok) throw new Error("The database answered with status " + r.status + ".");
+  if (r.data && r.data.status && r.data.status !== "ok") throw new GateError(r.data.status);
+  if (r.data && r.data.free === false) {
+    throw new TakenError(r.data.reason === "reserved" ? "“admin” is reserved. Pick another link name." : "That link name is already taken. Pick another one.");
+  }
+}
+
+/* ---------- Shared UI ---------- */
+const card = $("card");
+const HOST_NAME = (location.hostname || "redlink").replace(/^www\./, "");
+const adminHref = () => /^https?:$/.test(location.protocol) ? location.origin + "/admin" : location.pathname + "?admin";
+
+// One screen at a time inside the card.
+const VIEWS = ["boot", "gateView", "createView", "openView", "adminView", "admOff", "offlineView"];
+function showOnly(id) {
+  VIEWS.forEach((v) => { $(v).hidden = v !== id; });
+  card.classList.toggle("wide", id === "adminView");
+  const el = $(id); el.classList.remove("fade-in"); void el.offsetWidth; el.classList.add("fade-in");
+}
+
+// "Can't reach the database" screen. `retry` runs when the person taps Try again
+// (or when the browser comes back online).
+let offlineRetry = null, offlineWasSealed = false;
+function showOffline(ex, retry) {
+  offlineRetry = retry;
+  offlineWasSealed = card.classList.contains("sealed");
+  const noNet = navigator.onLine === false;
+  $("offTitle").textContent = noNet ? "You’re offline" : "Can’t reach the database";
+  $("offText").textContent = noNet
+    ? "This device has no internet connection. Reconnect, then try again."
+    : "RedLink couldn’t connect to its server. Nothing was changed. Check your connection, then try again.";
+  const detail = ex && ex.message ? ex.message : "";
+  $("offTech").textContent = detail; $("offTech").hidden = !detail;
+  $("offRetry").disabled = false; $("offRetry").textContent = "Try again";
+  showOnly("offlineView");
+  card.classList.remove("sealed"); card.classList.add("broken");   // the chain links split apart
+}
+$("offRetry").addEventListener("click", async () => {
+  $("offRetry").disabled = true; $("offRetry").textContent = "Trying…";
+  card.classList.remove("broken"); if (offlineWasSealed) card.classList.add("sealed");
+  await sleep(500);
+  if (offlineRetry) offlineRetry();
+});
+window.addEventListener("online", () => { if (!$("offlineView").hidden && !$("offRetry").disabled) $("offRetry").click(); });
+
+function setStep(list, name) {
+  let reached = false;
+  list.querySelectorAll("li").forEach((li) => {
+    if (li.dataset.step === name) { li.dataset.state = "active"; reached = true; }
+    else li.dataset.state = reached ? "" : "done";
+  });
+}
+const failStep = (list, name) => { list.querySelector(`[data-step="${name}"]`).dataset.state = "error"; };
+const allDone = (list) => list.querySelectorAll("li").forEach((li) => (li.dataset.state = "done"));
+const resetSteps = (list) => list.querySelectorAll("li").forEach((li) => (li.dataset.state = ""));
+
+let badgeUid = 0;
+function renderBadge(el, kind) { // re-rendering restarts the animation
+  const uid = "bg" + (++badgeUid), bad = kind === "bad";
+  const stops = bad ? ["#ffb3b9", "#e0334a"] : ["#a6f7d8", "#2fbf8a"];
+  const mark = bad ? "M18.5 18.5l15 15M33.5 18.5l-15 15" : "M15.5 27l7.5 7.5L37 19";
+  const sparks = [0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<span class="spark" style="--a:${a}deg"></span>`).join("");
+  el.className = "badge" + (bad ? " bad" : "");
+  el.innerHTML = `<span class="ring"></span><span class="ring r2"></span>${sparks}
+    <svg viewBox="0 0 52 52"><defs><radialGradient id="${uid}" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="${stops[0]}"/><stop offset="1" stop-color="${stops[1]}"/></radialGradient></defs>
+    <circle class="disc" cx="26" cy="26" r="25" fill="url(#${uid})"/><ellipse class="sheen" cx="22" cy="14" rx="13" ry="7"/><path class="tick" d="${mark}"/></svg>`;
+}
+
+async function scrambleReveal(el, finalText, total = 1100) {
+  if (reduceMotion) { el.textContent = finalText; return; }
+  const glyphs = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz0123456789";
+  const start = performance.now();
+  await new Promise((resolve) => {
+    (function frame(now) {
+      const t = Math.min(1, (now - start) / total);
+      const fixed = Math.floor(t * finalText.length);
+      let out = finalText.slice(0, fixed);
+      for (let i = fixed; i < finalText.length; i++) {
+        out += /[A-Za-z0-9]/.test(finalText[i]) ? glyphs[Math.floor(Math.random() * glyphs.length)] : finalText[i];
+      }
+      el.textContent = out;
+      t < 1 ? requestAnimationFrame(frame) : resolve();
+    })(start);
+  });
+  el.textContent = finalText;
+}
+
+async function copyTo(btn, text, idle) {
+  try { await navigator.clipboard.writeText(text); btn.textContent = "Copied"; }
+  catch { btn.textContent = "Select and copy it manually"; }
+  setTimeout(() => { btn.textContent = idle; }, 2200);
+}
+
+/* ---------- Which page? ---------- */
+// domain.com/my-link opens a RedLink. domain.com/ (or any other path) creates one.
+// For local testing without server rewrites, use  redlink.html?id=my-link
+function getOpenId() {
+  let seg = "";
+  try { seg = decodeURIComponent(location.pathname).replace(/^\/+|\/+$/g, ""); } catch { /* bad escape */ }
+  if (/^[a-z0-9_-]{3,64}$/i.test(seg)) return seg.toLowerCase();
+  const q = new URLSearchParams(location.search).get("id");
+  if (q && /^[a-z0-9_-]{3,64}$/i.test(q)) return q.toLowerCase();
+  return null;
+}
+// domain.com/admin (or redlink.html?admin) is the admin page, so "admin" can't be a link name.
+const IS_ADMIN = (() => {
+  let seg = "";
+  try { seg = decodeURIComponent(location.pathname).replace(/^\/+|\/+$/g, "").toLowerCase(); } catch { /* bad escape */ }
+  return seg === "admin" || new URLSearchParams(location.search).has("admin");
+})();
+const OPEN_ID = IS_ADMIN ? null : getOpenId();
+
+if (!(window.crypto && crypto.subtle)) {
+  const msg = "This page needs https:// or localhost for browser encryption.";
+  $("err").textContent = msg; $("go").disabled = true;
+  $("checkingText").textContent = msg;
+}
+
+/* ================= CREATE VIEW ================= */
+const form = $("form"), steps = $("steps"), result = $("result"), err = $("err");
+$("host").textContent = HOST_NAME;
+
+// The root link slides away while you type the name, and comes back if you leave it empty.
+function measurePrefix() {
+  const box = $("slugBox"), pf = $("prefix");
+  if (!box.classList.contains("collapsed")) pf.style.width = "auto";
+  pf.style.width = Math.ceil(pf.scrollWidth) + "px";
+}
+$("slug").addEventListener("focus", () => $("slugBox").classList.add("collapsed"));
+$("slug").addEventListener("blur", () => { if (!$("slug").value) $("slugBox").classList.remove("collapsed"); });
+$("slugBox").addEventListener("mousedown", (e) => { if (e.target !== $("slug")) { e.preventDefault(); $("slug").focus(); } });
+window.addEventListener("resize", () => { if (!$("createView").hidden) measurePrefix(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$("createView").hidden) measurePrefix(); });
+
+function flag(el, msg) {
+  err.textContent = msg;
+  el.classList.remove("invalid"); void el.offsetWidth; el.classList.add("invalid");
+  (el.querySelector ? el.querySelector("input") || el : el).focus();
+}
+$("message").addEventListener("input", () => { $("message").classList.remove("invalid"); err.textContent = ""; });
+$("slug").addEventListener("input", () => {
+  const s = $("slug");
+  s.value = s.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9_-]/g, "");
+  s.closest(".slug").classList.remove("invalid"); err.textContent = "";
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const message = $("message").value;
+  const id = $("slug").value.trim();
+
+  if (!message.trim()) return flag($("message"), "Enter a message or password to seal.");
+  if (!/^[a-z0-9_-]{3,64}$/.test(id)) return flag($("slug").closest(".slug"), "The link name needs 3 to 64 letters, numbers, - or _.");
+  if (id === "admin") return flag($("slug").closest(".slug"), "“admin” is reserved. Pick another link name.");
+  err.textContent = "";
+
+  const passkey = makePasskey();
+
+  $("go").disabled = true;
+  $("go").textContent = "Working…";
+  steps.hidden = false; steps.classList.add("fade-in");
+  resetSteps(steps);
+
+  let current = "salt";
+  const nameCheck = checkName(id);          // starts now, in the background
+  nameCheck.catch(() => {});
+  try {
+    const sealed = await seal(message, passkey, id, (s) => { current = s; setStep(steps, s); }, () => nameCheck);
+
+    current = "save"; setStep(steps, "save");
+    const saved = await saveToDb({ id, ...sealed });
+    allDone(steps);
+    await sleep(500);
+
+    form.hidden = true; steps.hidden = true;
+    card.classList.add("sealed");
+    result.hidden = false; result.classList.add("fade-in");
+    renderBadge($("okBadge"), "good");
+    $("demo").hidden = !saved.demo;
+    $("chip").textContent = HOST_NAME + "/" + id;
+    $("keyMeta").textContent = "Copy it now. You can’t revisit this.";
+    $("copy").textContent = "Copy passkey";
+    $("copy").onclick = () => copyTo($("copy"), passkey, "Copy passkey");
+    await scrambleReveal($("key"), passkey);
+  } catch (ex) {
+    if (ex instanceof GateError) {          // the server said the PIN / session is no good
+      steps.hidden = true;
+      $("go").disabled = false; $("go").textContent = "Create RedLink";
+      return relock(ex.status);
+    }
+    failStep(steps, current);
+    if (ex instanceof TakenError) {
+      flag($("slug").closest(".slug"), ex.message);
+    } else {
+      err.textContent = (current === "save" ? "Couldn’t save to the database. " : current === "salt" ? "Couldn’t check the link name. " : "Encryption failed. ") + (ex && ex.message ? ex.message : "") + " Nothing was stored. Try again.";
+    }
+    $("go").disabled = false;
+    $("go").textContent = "Try again";
+  }
+});
+
+$("again").addEventListener("click", () => {
+  result.hidden = true; $("key").textContent = "";
+  card.classList.remove("sealed");
+  form.hidden = false; form.reset(); $("slugBox").classList.remove("collapsed");
+  $("go").disabled = false; $("go").textContent = "Create RedLink";
+  form.classList.remove("fade-in"); void form.offsetWidth; form.classList.add("fade-in");
+  $("message").focus();
+});
+
+/* ================= CREATE ACCESS (open / pin / auth) ================= */
+let MODE = "open";
+let onUnlocked = () => showCreate();         // where a successful sign-in goes (the admin page swaps this)
+let pinValue = null;                         // kept in memory only; sent with every create
+const SESSION_KEY = "redlink.session";
+
+const loadSession = () => { try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch { return null; } };
+const saveSession = (v) => {
+  try { v ? sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)) : sessionStorage.removeItem(SESSION_KEY); }
+  catch { /* storage blocked: you will just sign in again on reload */ }
+};
+
+async function authCall(path, body) {        // Supabase Auth, plain fetch, no library needed
+  const res = await fetch(SUPABASE_URL.replace(/\/+$/, "") + "/auth/v1/" + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON_KEY },
+    body: JSON.stringify(body)
+  });
+  let data = null;
+  try { data = await res.json(); } catch { /* empty body */ }
+  return { ok: res.ok, status: res.status, data };
+}
+const toSession = (d) => ({
+  access_token: d.access_token, refresh_token: d.refresh_token,
+  expires_at: Date.now() + (d.expires_in || 3600) * 1000,
+  email: (d.user && d.user.email) || ""
+});
+async function getToken() {                  // a fresh access token, or null if signed out
+  const s = loadSession();
+  if (!s || !s.access_token) return null;
+  if (s.expires_at - Date.now() > 60000) return s.access_token;
+  try {
+    const r = await authCall("token?grant_type=refresh_token", { refresh_token: s.refresh_token });
+    if (r.ok && r.data && r.data.access_token) {
+      const n = toSession(r.data); n.email = n.email || s.email;
+      saveSession(n); return n.access_token;
+    }
+  } catch { /* fall through */ }
+  saveSession(null);
+  return null;
+}
+
+// Asks the database "may I create?" without creating anything.
+async function checkAccess() {
+  const token = MODE === "auth" ? await getToken() : null;
+  if (MODE === "auth" && !token) return "login";
+  try {
+    const r = await rpc("check_redlink_access", { p_pin: MODE === "pin" ? pinValue : null }, token);
+    return r.ok && r.data && r.data.status ? r.data.status : "error";
+  } catch { return "error"; }
+}
+
+const GATE_MSG = {
+  wrong: "Wrong PIN. Check it and try again.",
+  locked: "Too many wrong tries. Wait 15 minutes and try again.",
+  denied: "This account isn’t approved to use RedLink.",
+  login: "Your session ended. Please sign in again.",
+  error: "Couldn’t reach the database. Try again."
+};
+const gateMsg = (st) => GATE_MSG[st] || GATE_MSG.error;
+const shakeIn = (el) => { el.classList.remove("invalid"); void el.offsetWidth; el.classList.add("invalid"); };
+
+function showGate(kind, msg) {
+  showOnly("gateView");
+  const g = $("gateView");
+  $("loginNote").textContent = IS_ADMIN ? "Sign in to manage RedLinks." : "Sign in to create a RedLink.";
+  $("pinForm").hidden = kind !== "pin"; $("loginForm").hidden = kind !== "auth";
+  $("pinErr").textContent = kind === "pin" ? (msg || "") : "";
+  $("loginErr").textContent = kind === "auth" ? (msg || "") : "";
+  $("pinGo").disabled = false; $("pinGo").textContent = "Unlock";
+  $("loginGo").disabled = false; $("loginGo").textContent = "Sign in";
+  g.classList.remove("fade-in"); void g.offsetWidth; g.classList.add("fade-in");
+  setTimeout(() => $(kind === "pin" ? "pin" : "email").focus(), 60);
+}
+function showCreate() {
+  showOnly("createView");
+  measurePrefix();
+  const s = MODE === "auth" ? loadSession() : null;
+  $("who").hidden = !s;
+  if (s) $("whoText").textContent = s.email || "Signed in";
+  $("manageBtn").hidden = !s; $("manageBtn").href = adminHref();
+  $("message").focus();
+}
+// The database turned a create down: send the person back to the right screen.
+function relock(status) {
+  if (MODE === "pin") { pinValue = null; return showGate("pin", gateMsg(status)); }
+  if (MODE === "auth") { if (status !== "locked") saveSession(null); return showGate("auth", gateMsg(status)); }
+  err.textContent = "The database wants a PIN or sign-in. Set CREATE_MODE to match it, or run select redlink_mode('open'); in Supabase.";
+}
+
+$("pinForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const pin = $("pin").value.trim();
+  if (!pin) { $("pinErr").textContent = "Enter the PIN."; return shakeIn($("pin")); }
+  $("pinErr").textContent = ""; $("pinGo").disabled = true; $("pinGo").textContent = "Checking…";
+  pinValue = pin;
+  const st = await checkAccess();
+  if (st === "ok") { setTimeout(() => { $("pin").value = ""; }, 1500); return showCreate(); }
+  pinValue = null; $("pin").value = "";
+  $("pinGo").disabled = false; $("pinGo").textContent = "Unlock";
+  $("pinErr").textContent = gateMsg(st); shakeIn($("pin")); $("pin").focus();
+});
+
+$("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = $("email").value.trim(), password = $("password").value;
+  if (!email || !password) { $("loginErr").textContent = "Enter your email and password."; return shakeIn($(email ? "password" : "email")); }
+  $("loginErr").textContent = ""; $("loginGo").disabled = true; $("loginGo").textContent = "Signing in…";
+  let msg = "";
+  try {
+    const r = await authCall("token?grant_type=password", { email, password });
+    if (r.ok && r.data && r.data.access_token) {
+      saveSession(toSession(r.data));
+      const st = await checkAccess();
+      if (st === "ok") { setTimeout(() => { $("password").value = ""; }, 1500); return onUnlocked(); }
+      if (st === "denied") saveSession(null);
+      msg = gateMsg(st);
+    } else {
+      msg = r.status === 400 || r.status === 422 ? "Wrong email or password." : "Sign-in failed (status " + r.status + ").";
+    }
+  } catch { msg = "Couldn’t reach the sign-in service."; }
+  $("loginGo").disabled = false; $("loginGo").textContent = "Sign in";
+  $("loginErr").textContent = msg; $("password").value = ""; shakeIn($("password"));
+});
+
+$("signOut").addEventListener("click", () => { saveSession(null); showGate("auth"); });
+
+async function initCreate() {
+  showOnly("boot");
+  if (!configured() || !(window.crypto && crypto.subtle)) { MODE = "open"; return showCreate(); }  // demo mode / no crypto
+  MODE = ["open", "pin", "auth", "auto"].includes(CREATE_MODE) ? CREATE_MODE : "auto";
+  if (MODE === "auto") {
+    let r;
+    try { r = await rpc("get_redlink_mode", {}); }
+    catch (ex) { return showOffline(ex, initCreate); }
+    if (!r.ok) return showOffline(new Error("The database answered with status " + r.status + "."), initCreate);
+    MODE = ["open", "pin", "auth"].includes(r.data) ? r.data : "open";
+  }
+  if (MODE === "pin") return showGate("pin");
+  if (MODE === "auth") {
+    if (!(await getToken())) return showGate("auth");
+    const st = await checkAccess();
+    if (st === "ok") return showCreate();
+    if (st === "error") return showOffline(new Error("Couldn’t check your access."), initCreate);
+    if (st === "denied") saveSession(null);
+    return showGate("auth", st === "denied" || st === "locked" ? gateMsg(st) : "");
+  }
+  showCreate();
+}
+
+/* ================= ADMIN VIEW (users-only mode) ================= */
+const FLAME = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2c.8 3.6 5 5.6 5 10.5a5 5 0 0 1-10 0c0-2.1.9-3.6 2.1-4.7.1 1.8.9 2.7 1.9 2.9C10.6 7.4 10.4 4.7 12 2z"/></svg>';
+const plural = (n, unit) => n + " " + unit + (n === 1 ? "" : "s");
+function agoText(ms) {
+  const m = Math.floor(ms / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return plural(m, "minute") + " ago";
+  const h = Math.floor(m / 60);
+  return h < 48 ? plural(h, "hour") + " ago" : plural(Math.floor(h / 24), "day") + " ago";
+}
+function leftText(ms) {
+  if (ms <= 0) return "expiring now";
+  const m = Math.max(1, Math.floor(ms / 60000));
+  if (m < 60) return plural(m, "minute") + " left";
+  const h = Math.floor(m / 60);
+  return h < 48 ? plural(h, "hour") + " left" : plural(Math.floor(h / 24), "day") + " left";
+}
+
+// Calls an admin function with the signed-in user's token. The database checks
+// the token, the users-only mode and the approved-email list on every call.
+async function admCall(fn, args) {
+  const token = await getToken();
+  if (!token) throw new GateError("login");
+  const r = await rpc(fn, args, token);
+  if (r.status === 401) throw new GateError("login");
+  if (!r.ok) throw new Error("The database answered with status " + r.status + ".");
+  const st = r.data && r.data.status;
+  if (st !== "ok" && st !== "gone") throw new GateError(st || "error");
+  return r.data;
+}
+
+function showAdminOff(text) {
+  if (text) $("admOffText").textContent = text;
+  showOnly("admOff");
+}
+
+// A gate error sends the person to sign in again; anything else is a connection
+// problem (inline when the list is already on screen, full screen otherwise).
+function adminFail(ex, inline) {
+  if (ex instanceof GateError) {
+    if (ex.status === "off") return showAdminOff();
+    if (ex.status === "login" || ex.status === "denied") saveSession(null);
+    return showGate("auth", ex.status === "login" ? "" : gateMsg(ex.status));
+  }
+  if (inline) { $("admErr").textContent = "Couldn’t reach the database. " + (ex && ex.message ? ex.message : ""); return; }
+  showOffline(ex, loadAdmin);
+}
+
+function updateAdminCount() {
+  const n = $("admList").children.length;
+  $("admCount").textContent = n === 1 ? "1 live link" : n + " live links";
+  $("admEmpty").hidden = n > 0;
+}
+
+function renderAdmin(rows, max) {
+  const ul = $("admList"); ul.textContent = "";
+  const now = Date.now();
+  rows.forEach((row) => {
+    const li = document.createElement("li"); li.className = "lk";
+    const main = document.createElement("div"); main.className = "main";
+    const name = document.createElement("div"); name.className = "name"; name.textContent = HOST_NAME + "/" + row.id;
+    const meta = document.createElement("div"); meta.className = "meta";
+    const bits = [["Created " + agoText(now - new Date(row.created_at).getTime())], [leftText(new Date(row.expires_at).getTime() - now)]];
+    if (row.attempts > 0) bits.push([row.attempts + " of " + max + " wrong tries", "hot"]);
+    bits.forEach(([t, cls]) => { const sp = document.createElement("span"); sp.textContent = t; if (cls) sp.className = cls; meta.appendChild(sp); });
+    main.append(name, meta);
+
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "burn";
+    btn.innerHTML = '<span class="fw"><span class="fire"></span></span><span class="ic">' + FLAME + '</span><span class="lbl">Burn</span>';
+    btn.setAttribute("aria-label", "Burn " + row.id + ". Press once, then press and hold.");
+    setupBurn(btn, li, row.id);
+    li.append(main, btn);
+    ul.appendChild(li);
+  });
+  updateAdminCount();
+}
+
+function spark(host, x, y, big) {
+  const e = document.createElement("span"); e.className = "ember";
+  e.style.left = x + "px"; e.style.top = y + "px";
+  e.style.setProperty("--dx", ((Math.random() - .5) * (big ? 60 : 28)).toFixed(0) + "px");
+  e.style.setProperty("--dy", (-(big ? 40 + Math.random() * 60 : 22 + Math.random() * 36)).toFixed(0) + "px");
+  e.style.setProperty("--d", (.55 + Math.random() * .6).toFixed(2) + "s");
+  host.appendChild(e);
+  e.addEventListener("animationend", () => e.remove());
+}
+
+// Burn: press once to arm it, then press and hold. The fire builds while you hold
+// and the link is deleted when it fills. Let go early and the fire dies down.
+function setupBurn(btn, li, id) {
+  const HOLD_MS = 1600, lbl = btn.querySelector(".lbl");
+  let armed = false, holding = false, done = false, p = 0, raf = 0, last = 0, armT = 0, nextSpark = 0;
+
+  function setP(v) {
+    p = v; btn.style.setProperty("--p", v.toFixed(3));
+    if (v > .02 && !reduceMotion) {
+      const a = v * 2.6;
+      btn.style.transform = "translate(" + ((Math.random() - .5) * a).toFixed(2) + "px," + ((Math.random() - .5) * a).toFixed(2) + "px) scale(" + (1 + v * .06).toFixed(3) + ")";
+    } else btn.style.transform = "";
+  }
+  function arm() {
+    armed = true; btn.classList.add("armed"); lbl.textContent = "Hold to burn";
+    clearTimeout(armT); armT = setTimeout(disarm, 4500);
+  }
+  function disarm() {
+    if (holding || done) return;
+    armed = false; btn.classList.remove("armed"); lbl.textContent = "Burn";
+  }
+  function tick(t) {
+    const dt = Math.min(64, t - last); last = t;
+    if (holding) {
+      setP(Math.min(1, p + dt / HOLD_MS));
+      if (t >= nextSpark && !reduceMotion) {
+        spark(btn, Math.random() * btn.offsetWidth, btn.offsetHeight * (1 - p) + 4, false);
+        nextSpark = t + 140 - p * 110;
+      }
+      if (p >= 1) { raf = 0; return finish(); }
+    } else {
+      setP(Math.max(0, p - dt / 380));
+      if (p <= 0) { btn.classList.remove("holding"); raf = 0; return; }
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  function start() {
+    if (!armed || done || holding) return;
+    holding = true; clearTimeout(armT);
+    btn.classList.add("holding"); lbl.textContent = "Keep holding…";
+    last = performance.now();
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function stop() {
+    if (!holding) return;
+    holding = false; lbl.textContent = "Hold to burn";
+    clearTimeout(armT); armT = setTimeout(disarm, 4500);
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+  }
+  async function finish() {
+    done = true; holding = false; btn.disabled = true; lbl.textContent = "Burning…"; $("admErr").textContent = "";
+    try {
+      await admCall("admin_burn_redlink", { p_id: id });    // "gone" (already deleted) counts too
+    } catch (ex) {
+      done = false; btn.disabled = false; setP(0); btn.classList.remove("holding"); disarm();
+      return adminFail(ex, true);
+    }
+    if (!reduceMotion) {
+      for (let i = 0; i < 20; i++) spark(li, Math.random() * li.offsetWidth, li.offsetHeight * (.3 + Math.random() * .6), true);
+      li.classList.add("torched");
+      await sleep(1000);
+    }
+    li.remove(); updateAdminCount();
+  }
+
+  btn.addEventListener("click", () => { if (!armed && !done) arm(); });
+  btn.addEventListener("pointerdown", (e) => {
+    if (!armed || done || e.button > 0) return;
+    e.preventDefault();
+    try { btn.setPointerCapture(e.pointerId); } catch { /* not supported */ }
+    start();
+  });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach((ev) => btn.addEventListener(ev, stop));
+  btn.addEventListener("contextmenu", (e) => e.preventDefault());
+  btn.addEventListener("keydown", (e) => {
+    if ((e.key === " " || e.key === "Enter") && armed && !done) { e.preventDefault(); if (!e.repeat) start(); }
+  });
+  btn.addEventListener("keyup", (e) => { if (e.key === " " || e.key === "Enter") stop(); });
+}
+
+async function loadAdmin() {
+  onUnlocked = loadAdmin;
+  showOnly("boot");
+  try {
+    const d = await admCall("admin_list_redlinks", {});
+    $("admErr").textContent = "";
+    const s = loadSession(); $("admWho").textContent = (s && s.email) || "Signed in";
+    renderAdmin(d.links || [], d.max_attempts || 5);
+    showOnly("adminView");
+  } catch (ex) { adminFail(ex, false); }
+}
+
+async function initAdmin() {
+  onUnlocked = loadAdmin;
+  document.title = "RedLink · Admin";
+  const home = /^https?:$/.test(location.protocol) ? location.origin + "/" : location.pathname;
+  $("admBack").href = home; $("admOffBack").href = home;
+  showOnly("boot");
+  if (!configured()) return showAdminOff("Add your Supabase URL and key in the script first. The admin page needs the database.");
+  let r;
+  try { r = await rpc("get_redlink_mode", {}); }
+  catch (ex) { return showOffline(ex, initAdmin); }
+  if (!r.ok) return showOffline(new Error("The database answered with status " + r.status + "."), initAdmin);
+  if (r.data !== "auth") return showAdminOff();
+  MODE = "auth";
+  loadAdmin();
+}
+
+$("admRefresh").addEventListener("click", async () => {
+  const b = $("admRefresh"); b.disabled = true; b.textContent = "Refreshing…";
+  try {
+    const d = await admCall("admin_list_redlinks", {});
+    $("admErr").textContent = "";
+    renderAdmin(d.links || [], d.max_attempts || 5);
+  } catch (ex) { adminFail(ex, true); }
+  b.disabled = false; b.textContent = "Refresh";
+});
+$("admSignOut").addEventListener("click", () => { saveSession(null); showGate("auth"); });
+
+/* ================= OPEN VIEW ================= */
+if (OPEN_ID) {
+  showOnly("openView");
+  card.classList.add("sealed");              // chain links joined: the link is locked
+  $("newLink").href = /^https?:$/.test(location.protocol) ? location.origin + "/" : location.pathname;
+
+  const openForm = $("openForm"), openSteps = $("openSteps");
+  let metaString = null;   // "salt.checksum" from the database; nothing else is sent before the passkey is proven
+
+  let canCreate = false;
+
+  // The "Create a RedLink" button only exists when anyone is allowed to create.
+  async function createAllowed() {
+    if (!configured()) return true;
+    try { const r = await rpc("get_redlink_mode", {}); return r.ok && r.data === "open"; }
+    catch { return false; }
+  }
+
+  function showGone(kind) {
+    $("checking").hidden = true; openForm.hidden = true; openSteps.hidden = true;
+    const locked = kind === "locked";
+    $("goneTitle").textContent = locked ? "Too many wrong passkeys" : "This link isn’t valid";
+    $("goneText").textContent = (locked
+      ? "This RedLink was destroyed to protect the message."
+      : "It may have been opened already, expired after 7 days, or never existed.")
+      + (canCreate ? "" : " Ask whoever sent it for a new one.");
+    $("newLink").hidden = !canCreate;
+    const g = $("gone"); g.hidden = false;
+    card.classList.remove("sealed"); card.classList.add("broken");
+    g.classList.remove("fade-in"); void g.offsetWidth; g.classList.add("fade-in");
+  }
+
+  async function lookup() {
+    showOnly("openView");
+    $("checking").hidden = false;
+    const pace = sleep(1700);               // keep the animation up long enough to enjoy it
+    try {
+      if (!configured()) throw new Error("The database isn’t set up yet.");
+      const [r, allowed] = await Promise.all([rpc("get_redlink_meta", { p_id: OPEN_ID }), createAllowed(), pace]);
+      canCreate = allowed;
+      if (!r.ok) throw new Error("The database answered with status " + r.status + ".");
+      if (typeof r.data !== "string" || !r.data.includes(".")) return showGone("gone");
+      metaString = r.data;
+      $("checking").hidden = true;
+      openForm.hidden = false; openForm.classList.add("fade-in");
+      $("passkey").focus();
+    } catch (ex) {
+      showOffline(ex, lookup);
+    }
+  }
+
+  function showWrong(left) {
+    openSteps.hidden = true;
+    openForm.hidden = false;
+    $("deny").hidden = false;
+    renderBadge($("denyBadge"), "bad");
+    $("denyText").textContent = typeof left === "number" ? `${left} ${left === 1 ? "try" : "tries"} left` : "Check it and try again.";
+    $("passkey").value = "";
+    $("passkey").classList.remove("invalid"); void $("passkey").offsetWidth; $("passkey").classList.add("invalid");
+    $("openGo").disabled = false; $("openGo").textContent = "Try again";
+    $("passkey").focus();
+    // the chain links break apart and the whole card shakes
+    card.classList.add("broken");
+    setTimeout(() => card.classList.remove("broken"), 1500);
+    if (!reduceMotion && card.animate) {
+      card.animate(
+        [{ transform: "translateX(0)" }, { transform: "translateX(-12px)" }, { transform: "translateX(10px)" },
+         { transform: "translateX(-8px)" }, { transform: "translateX(5px)" }, { transform: "translateX(0)" }],
+        { duration: 520, easing: "ease-in-out" }
+      );
+    }
+  }
+
+  $("passkey").addEventListener("input", () => { $("passkey").classList.remove("invalid"); $("openErr").textContent = ""; });
+
+  openForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const passkey = $("passkey").value;
+    if (!passkey.trim()) {
+      $("openErr").textContent = "Enter the passkey.";
+      $("passkey").classList.remove("invalid"); void $("passkey").offsetWidth; $("passkey").classList.add("invalid");
+      return $("passkey").focus();
+    }
+    if (!isPasskeyFormat(passkey)) {       // wrong shape: not a RedLink passkey, so don't even ask the database
+      $("openErr").textContent = "That isn’t a RedLink passkey.";
+      $("passkey").classList.remove("invalid"); void $("passkey").offsetWidth; $("passkey").classList.add("invalid");
+      return $("passkey").focus();
+    }
+    $("openErr").textContent = ""; $("deny").hidden = true;
+    $("openGo").disabled = true; $("openGo").textContent = "Working…";
+    openForm.hidden = true; openSteps.hidden = false; openSteps.classList.add("fade-in");
+    resetSteps(openSteps);
+
+    let current = "derive";
+    try {
+      setStep(openSteps, "derive");
+      const saltStr = metaString.split(".")[0];
+      const { aesKey, proof } = await deriveSecrets(passkey, b64uDecode(saltStr));
+      await sleep(250);
+
+      current = "claim"; setStep(openSteps, "claim");
+      const [r] = await Promise.all([rpc("claim_redlink", { p_id: OPEN_ID, p_proof: proof }), sleep(350)]);
+      if (!r.ok || !r.data) throw new Error("The database answered with status " + r.status + ".");
+
+      if (r.data.status === "gone") return showGone("gone");
+      if (r.data.status === "locked") return showGone("locked");
+      if (r.data.status === "wrong") { failStep(openSteps, "claim"); await sleep(250); return showWrong(r.data.left); }
+      if (r.data.status !== "ok") throw new Error("Unexpected answer from the database.");
+
+      // The row is deleted at this point. Check the text is intact, then decrypt.
+      current = "decrypt"; setStep(openSteps, "decrypt");
+      const text = r.data.encrypted_text;
+      if ((await checksumOf(text)) !== metaString || text.split(".")[0] !== saltStr) {
+        throw new Error("The stored message is damaged.");
+      }
+      let plain;
+      try { plain = await decryptSealed(text, aesKey, OPEN_ID); }
+      catch { failStep(openSteps, "decrypt"); await sleep(250); return showWrong(); }  // cannot decrypt: same wrong-passkey screen
+      await sleep(350);
+      allDone(openSteps);
+      await sleep(450);
+
+      openSteps.hidden = true;
+      card.classList.remove("sealed");        // chain links open
+      $("opened").hidden = false; $("opened").classList.add("fade-in");
+      renderBadge($("openBadge"), "good");
+      $("copyMsg").textContent = "Copy message";
+      $("copyMsg").onclick = () => copyTo($("copyMsg"), plain, "Copy message");
+      await scrambleReveal($("msg"), plain, plain.length > 2000 ? 0 : Math.min(1600, 500 + plain.length * 12));
+    } catch (ex) {
+      failStep(openSteps, current);
+      openSteps.hidden = false;
+      openForm.hidden = false;
+      $("openErr").textContent = (ex && ex.message ? ex.message + " " : "") + (current === "decrypt" ? "" : "Try again.");
+      $("openGo").disabled = false; $("openGo").textContent = "Try again";
+    }
+  });
+
+  lookup();
+}
+
+/* ================= CODERED TRIBUTE (easter egg) ================= */
+const crEl = $("cr"), crLink = document.querySelector(".by a"), crCv = $("crCanvas"), crMark = $("crMark");
+let crBusy = false, crRaf = 0, crHoldT = 0, crLast = null, crTyping = 0, crTagT = 0, crIdleT = 0, crIdleShown = false, crWordT = 0, crClicks = [], crBuf = "", crKon = 0;
+let crW = 0, crH = 0, crFx = [];
+
+/* spark layer: bursts when you click, snap the chain or close */
+function crSize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  crW = innerWidth; crH = innerHeight;
+  crCv.width = crW * dpr; crCv.height = crH * dpr;
+  crCv.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function crBurstAt(x, y, n, gold) {
+  if (reduceMotion) return;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 4.5;
+    crFx.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - .6, r: 1 + Math.random() * 2.4, life: 1, g: !!gold });
+  }
+  if (crFx.length > 400) crFx.splice(0, crFx.length - 400);
+}
+function crFrame() {
+  const ctx = crCv.getContext("2d");
+  ctx.clearRect(0, 0, crW, crH);
+  for (let i = crFx.length - 1; i >= 0; i--) {
+    const f = crFx[i];
+    f.vx *= .985; f.vy = f.vy * .985 - .012; f.x += f.vx; f.y += f.vy; f.life -= .013;
+    if (f.life <= 0) { crFx.splice(i, 1); continue; }
+    ctx.fillStyle = f.g ? "rgba(255," + Math.round(170 + 60 * f.life) + "," + Math.round(70 + 60 * f.life) + "," + f.life.toFixed(2) + ")" : "rgba(255," + Math.round(120 + 80 * f.life) + ",90," + f.life.toFixed(2) + ")";
+    ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.2832); ctx.fill();
+  }
+  if (!reduceMotion) crRaf = requestAnimationFrame(crFrame);
+}
+
+/* hold the chain: links pull apart, then snap */
+function crSnap() {
+  const r = crMark.getBoundingClientRect();
+  crBurstAt(r.left + r.width / 2, r.top + r.height / 2, 70);
+  crMark.classList.remove("snap"); void crMark.offsetWidth; crMark.classList.add("snap");
+  crFind("snap"); crSay("Snap. Read once, then gone.");
+}
+const crRelease = () => { clearTimeout(crHoldT); crMark.classList.remove("pull"); };
+crMark.addEventListener("pointerdown", (e) => {
+  if (e.button !== 0) return;
+  crMark.classList.add("pull"); clearTimeout(crHoldT); crHoldT = setTimeout(crSnap, 600);
+});
+["pointerup", "pointercancel", "pointerleave"].forEach((t) => crMark.addEventListener(t, crRelease));
+crMark.addEventListener("contextmenu", (e) => e.preventDefault());
+crMark.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && !e.repeat) { e.preventDefault(); crMark.classList.add("pull"); crSnap(); }
+});
+crMark.addEventListener("keyup", crRelease);
+
+/* tilt + glow on the tiles */
+document.querySelectorAll(".cr-tile").forEach((t) => {
+  t.addEventListener("pointermove", (e) => {
+    if (reduceMotion || e.pointerType === "touch") return;
+    const r = t.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+    t.style.setProperty("--ry", ((px - .5) * 12).toFixed(1) + "deg");
+    t.style.setProperty("--rx", ((.5 - py) * 12).toFixed(1) + "deg");
+    t.style.setProperty("--gx", (px * 100).toFixed(0) + "%"); t.style.setProperty("--gy", (py * 100).toFixed(0) + "%");
+  });
+  t.addEventListener("pointerleave", () => { t.style.setProperty("--rx", "0deg"); t.style.setProperty("--ry", "0deg"); });
+});
+
+const CR_TAG = "Made by Codered, for secrets that should only be read once.";
+const crDefault = () => crMaster ? "Made by Codered. You found every secret." : CR_TAG;
+const CR_CH = "abcdefghijklmnopqrstuvwxyz0123456789+/=#$%&@";
+const crRnd = () => CR_CH[Math.floor(Math.random() * CR_CH.length)];
+
+/* typed line under the wordmark */
+function crType(text) {
+  const el = $("crTag"); clearInterval(crTyping);
+  if (reduceMotion) { el.textContent = text; return; }
+  let i = 0; el.textContent = "";
+  crTyping = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(crTyping); }, 26);
+}
+function crSay(text, hold = 3200) {          // show a message, then go back to the default line
+  clearTimeout(crTagT); crType(text);
+  crTagT = setTimeout(() => crType(crDefault()), (reduceMotion ? 0 : text.length * 26) + hold);
+}
+function crIdle() {
+  clearTimeout(crIdleT); if (crIdleShown) return;
+  crIdleT = setTimeout(() => { crIdleShown = true; crFind("idle"); crSay("Still here? Your links expire in 7 days, you know."); }, 12000);
+}
+function crFlash() {
+  const r = crMark.getBoundingClientRect();
+  crBurstAt(r.left + r.width / 2, r.top + r.height / 2, 40);
+  crMark.classList.remove("snap"); void crMark.offsetWidth; crMark.classList.add("snap");
+}
+function crScramble(el, final, ms) {          // gibberish that resolves into the real text, left to right
+  return new Promise((res) => {
+    if (reduceMotion) { el.textContent = final; return res(); }
+    const t0 = performance.now();
+    (function step(now) {
+      const k = Math.floor(Math.min(1, (now - t0) / ms) * final.length);
+      let out = ""; for (let i = 0; i < final.length; i++) out += (i < k || final[i] === " ") ? final[i] : crRnd();
+      el.textContent = out;
+      if (k < final.length) requestAnimationFrame(step); else res();
+    })(t0);
+  });
+}
+
+/* ---- easter eggs (all about RedLink) ---- */
+const crTiles = [...document.querySelectorAll(".cr-tile")];
+crTiles.forEach((t) => { const sp = t.querySelector("span"); sp.dataset.txt = sp.textContent; });
+function crReset() {
+  crTiles.forEach((t) => { t.classList.remove("burn"); t.dataset.busy = ""; t.style.removeProperty("--d"); const sp = t.querySelector("span"); sp.textContent = sp.dataset.txt; });
+  crClicks = []; crBuf = ""; crKon = 0; crMark.classList.remove("shake", "pull");
+}
+function crBurn(t) {                           // tile burns away, then re-forms
+  if (t.dataset.busy) return; t.dataset.busy = "1"; t.classList.add("burn");
+  setTimeout(() => { t.classList.remove("burn"); t.style.setProperty("--d", "0s"); t.dataset.busy = ""; }, 1700);
+}
+async function crSeal(t) {                     // tile text turns to ciphertext, then decrypts
+  if (t.dataset.busy) return; t.dataset.busy = "1";
+  const sp = t.querySelector("span"); await crScramble(sp, sp.dataset.txt, 1100); t.dataset.busy = "";
+}
+function crExpire(t) {                         // fast-forward the 7-day timer
+  if (t.dataset.busy) return; t.dataset.busy = "1";
+  const sp = t.querySelector("span"); let h = 168;
+  const tick = setInterval(() => {
+    h = Math.max(0, h - 6);
+    sp.textContent = h ? "Expires in " + Math.floor(h / 24) + "d " + String(h % 24).padStart(2, "0") + "h" : "Expired. Purged.";
+    if (!h) { clearInterval(tick); setTimeout(() => { sp.textContent = sp.dataset.txt; t.dataset.busy = ""; }, 1200); }
+  }, 45);
+}
+crTiles.forEach((t) => t.addEventListener("click", () => {
+  const k = t.dataset.egg;
+  if (k === "seal") { crFind("t-seal"); crSeal(t); crSay("Sealed in your browser. The server never sees the real thing."); }
+  else if (k === "burn") { crFind("t-burn"); crBurn(t); crSay("Read once. Then it's gone."); }
+  else { crFind("t-expire"); crExpire(t); crSay("Seven days, then it purges itself."); }
+}));
+
+/* click the chain 5 times fast */
+crMark.addEventListener("click", () => {
+  const now = Date.now(); crClicks = crClicks.filter((t) => now - t < 1500); crClicks.push(now);
+  if (crClicks.length >= 5) {
+    crClicks = []; crMark.classList.remove("shake"); void crMark.offsetWidth; crMark.classList.add("shake");
+    setTimeout(() => crMark.classList.remove("shake"), 600);
+    crFind("lock"); crSay("Locked tight. Too many wrong tries and it burns.");
+  }
+});
+
+/* hold the wordmark: it encrypts while you hold, decrypts when you let go */
+const crWordEl = $("crWord");
+const crWordEnd = () => {
+  if (!crWordT) return; clearInterval(crWordT); crWordT = 0;
+  [...crWordEl.children].forEach((sp, i) => setTimeout(() => { sp.textContent = "Codered"[i]; }, i * 70));
+};
+crWordEl.addEventListener("pointerdown", (e) => {
+  if (e.button !== 0 || crWordT || crEl.classList.contains("out")) return;
+  crWordT = setInterval(() => [...crWordEl.children].forEach((sp) => { sp.textContent = crRnd(); }), 55);
+  crFind("hold");
+  crSay("Encrypted while you hold. Let go to decrypt.  \u00b7  " + Math.min(crFound.size, CR_TOTAL) + "/" + CR_TOTAL + " found", 1500);
+});
+["pointerup", "pointercancel", "pointerleave"].forEach((t) => crWordEl.addEventListener(t, crWordEnd));
+
+/* type a word while the tribute is open */
+const CR_PW = ["Maple", "River", "Cloud", "Amber", "Cedar", "Ember", "Harbor", "Pine", "Stone", "Willow", "Falcon", "Frost"];
+const crSample = () => CR_PW[randInt(CR_PW.length)] + "-" + CR_PW[randInt(CR_PW.length)] + "-" + CR_PW[randInt(CR_PW.length)] + "-" + (100 + randInt(900));
+const CR_WORDS = {
+  redlink: () => { crFlash(); crSay("RedLink: one secret, one link, one look."); },
+  secret: () => { crTiles.forEach((t) => crSeal(t)); crSay("Shh. Only the passkey can read it."); },
+  burn: () => { crTiles.forEach((t) => crBurn(t)); crSay("Burn after reading."); },
+  open: () => { crMark.classList.add("pull"); setTimeout(() => crMark.classList.remove("pull"), 1400); crSay("Open. One look, then it's gone."); },
+  passkey: () => crSay("Try this one: " + crSample() + ". Just for show, it opens nothing."),
+  pin: () => crSay("A PIN only decides who can create links. Opening still needs the passkey."),
+  admin: () => crSay("Admin sits behind a sign-in. Nice try."),
+  expire: () => { crExpire(crTiles[2]); crSay("Seven days, then it purges itself."); },
+  link: () => crSay("A link lasts 7 days at most, and one look at best.")
+};
+const CR_KEYS = Object.keys(CR_WORDS).sort((a, b) => b.length - a.length);
+const CR_TOTAL = 9 + CR_KEYS.length;          // 6 click/hold eggs + typed words + passkey-shape, konami, idle
+/* ---- progress, saved in this browser ---- */
+const CR_LS = "redlink-codered-eggs";
+const crFound = new Set();
+try { const a = JSON.parse(localStorage.getItem(CR_LS) || "[]"); if (Array.isArray(a)) a.forEach((x) => typeof x === "string" && crFound.add(x)); } catch {}
+let crMaster = crFound.size >= CR_TOTAL;
+$("crBadge").textContent = "All " + CR_TOTAL + " secrets found";
+function crFind(id) {
+  if (crFound.has(id)) return;
+  crFound.add(id);
+  try { localStorage.setItem(CR_LS, JSON.stringify([...crFound])); } catch {}
+  if (crFound.size >= CR_TOTAL && !crMaster) crFinale();
+}
+function crFinale() {
+  crMaster = true;
+  setTimeout(() => {                              // let the last egg play out first
+    if (!crBusy || crEl.classList.contains("out")) return;
+    const r = crMark.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const fin = $("crFinale"); fin.style.setProperty("--fx", cx + "px"); fin.style.setProperty("--fy", cy + "px");
+    fin.classList.remove("go"); void fin.offsetWidth; fin.classList.add("go");
+    crEl.classList.add("finale"); crMark.classList.add("pull");
+    crSay("All " + CR_TOTAL + " found. You've seen everything RedLink hides.", 4200);
+    crBurstAt(cx, cy, 120, true);
+    let n = 0; const iv = setInterval(() => { crBurstAt(Math.random() * crW, Math.random() * crH * .8, 24, true); if (++n >= 8 || !crBusy) clearInterval(iv); }, 170);
+    setTimeout(() => { crMark.classList.remove("pull"); crEl.classList.add("master"); $("crBadge").hidden = false; }, 700);
+    setTimeout(() => crEl.classList.remove("finale"), 2400);
+  }, 1300);
+}
+const CR_KON = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft", "arrowright", "arrowleft", "arrowright", "b", "a"];
+function crKeyEggs(e) {
+  if (e.ctrlKey || e.metaKey || e.altKey || crEl.classList.contains("out")) return;
+  crIdle();
+  const k = e.key.toLowerCase();
+  crKon = k === CR_KON[crKon] ? crKon + 1 : (k === CR_KON[0] ? 1 : 0);
+  if (crKon === CR_KON.length) { crKon = 0; crFind("konami"); crFlash(); crSay("Konami code? The only cheat code here is a good passkey."); return; }
+  if (!/^[a-z0-9-]$/.test(k)) return;
+  crBuf = (crBuf + k).slice(-40);
+  if (/[a-z]+-[a-z]+-[a-z]+-\d{3}$/.test(crBuf)) { crBuf = ""; crFind("passkeylike"); crFlash(); crSay("That looks like a passkey. Keep it to yourself."); return; }
+  for (const w of CR_KEYS) if (crBuf.endsWith(w)) { crBuf = ""; crFind("w-" + w); CR_WORDS[w](); return; }
+}
+
+const crContact = $("crContact");
+crEl.addEventListener("pointermove", (e) => {      // only the button reacts to the cursor
+  if (reduceMotion || e.pointerType === "touch") return;
+  const r = crContact.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const k = Math.max(0, 1 - Math.hypot(dx, dy) / 170) * .35;
+  crContact.style.setProperty("--tx", (dx * k).toFixed(1) + "px"); crContact.style.setProperty("--ty", (dy * k).toFixed(1) + "px");
+});
+crEl.addEventListener("pointerleave", () => { crContact.style.removeProperty("--tx"); crContact.style.removeProperty("--ty"); });
+crEl.addEventListener("pointerdown", crIdle);
+window.addEventListener("resize", () => { if (crBusy) crSize(); });
+
+function crOpen(x, y) {
+  crBusy = true; crLast = document.activeElement;
+  crEl.style.setProperty("--cx", x + "px"); crEl.style.setProperty("--cy", y + "px");
+  const word = $("crWord"); word.textContent = "";
+  [..."Codered"].forEach((ch, i) => { const sp = document.createElement("span"); sp.textContent = ch; sp.style.setProperty("--i", i); word.appendChild(sp); });
+  $("card").inert = true;
+  crEl.hidden = false; crEl.className = "cr"; void crEl.offsetWidth; crEl.classList.add("on");
+  if (crMaster) crEl.classList.add("master");
+  $("crBadge").hidden = !crMaster; $("crFinale").classList.remove("go");
+  crFx = []; crSize(); cancelAnimationFrame(crRaf); crFrame();
+  crReset(); crIdleShown = false; crIdle(); $("crTag").textContent = "";
+  clearTimeout(crTagT); crTagT = setTimeout(() => crType(crDefault()), reduceMotion ? 0 : 1100);
+  setTimeout(() => $("crClose").focus({ preventScroll: true }), 80);
+}
+function crOut() {
+  if (!crBusy || crEl.classList.contains("out")) return;
+  crEl.classList.add("out");
+  clearTimeout(crHoldT); crMark.classList.remove("pull");
+  if (!reduceMotion) {
+    const r = crMark.getBoundingClientRect();
+    crBurstAt(r.left + r.width / 2, r.top + r.height / 2, 90);
+    setTimeout(() => crBurstAt(crW / 2, crH * .6, 60), 250);
+  }
+  setTimeout(() => {
+    cancelAnimationFrame(crRaf); clearInterval(crTyping); clearTimeout(crTagT); clearTimeout(crIdleT); clearInterval(crWordT); crWordT = 0;
+    crEl.hidden = true; crEl.className = "cr"; crMark.classList.remove("pull", "snap");
+    $("card").inert = false; crBusy = false;
+    if (crLast && crLast.focus) crLast.focus({ preventScroll: true });
+  }, reduceMotion ? 450 : 1100);
+}
+crLink.addEventListener("click", (e) => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  if (crBusy) return;
+  const r = crLink.getBoundingClientRect();
+  crOpen(e.detail === 0 ? r.left + r.width / 2 : e.clientX, e.detail === 0 ? r.top + r.height / 2 : e.clientY);
+});
+$("crClose").addEventListener("click", crOut);
+document.addEventListener("keydown", (e) => {
+  if (crEl.hidden) return;
+  if (e.key === "Escape") return crOut();
+  crKeyEggs(e);
+  if (e.key === "Tab") {
+    const f = [$("crClose"), crMark, crContact], i = f.indexOf(document.activeElement);
+    e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+  }
+});
+
+/* ================= START ================= */
+if (IS_ADMIN) initAdmin(); else if (!OPEN_ID) initCreate();
+</script>
+</body>
+</html>
