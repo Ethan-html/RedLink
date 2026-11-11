@@ -6,7 +6,7 @@
 
 ### Share a secret once. Then it's gone.
 
-Encrypted, self-destructing links with a passkey.
+Encrypted, self-destructing links.
 Your message is locked **in your browser** before it ever leaves your device.
 
 ![Encryption](https://img.shields.io/badge/encryption-AES--256--GCM-ff4d5e?style=for-the-badge)
