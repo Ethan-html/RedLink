@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="REDLINK.png" alt="RedLink" width="420">
+<img src="docs/readme-logo.png" alt="RedLink" width="170">
 
 # 🔴 RedLink
 
@@ -24,7 +24,7 @@ Your message is locked **in your browser** before it ever leaves your device.
 
 RedLink lets you send a password, API key, or private note without leaving it sitting in someone's chat history or inbox.
 
-1. You type your message and pick a link name.
+1. You type your message and pick a link.
 2. RedLink encrypts it and gives you a **link** plus a **passkey** like `Maple-River-Cloud-482`.
 3. You send the link and the passkey (ideally through different channels).
 4. The recipient opens the link, enters the passkey, reads the message, and **it's deleted**.
@@ -137,6 +137,7 @@ Signed-in approved accounts get a **Manage links** button, or visit `yoursite.co
 redlink/
 ├── index.html                  ← the entire website
 ├── netlify.toml                ← build + security headers
+├── docs/readme-logo.png        ← logo used in this README
 ├── _redirects                  ← routing for link URLs
 ├── scripts/make-config.js      ← build step: writes config, publishes only public files
 ├── supabase/
