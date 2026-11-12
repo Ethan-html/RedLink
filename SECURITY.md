@@ -97,43 +97,17 @@ The site is served over HTTPS and sends security headers that stop content-type 
 
 ---
 
-## ⚖️ Honest limits
-
-No tool is perfect, and a security page that hides its limits isn't doing its job. These are the things RedLink **does not** protect against.
-
-- **Anyone with the full link can read the message.** The full-link option trades some safety for convenience. For anything very sensitive, send the link and the passkey through **two different channels**.
-- **The passkey is easy to say and type, on purpose.** That makes it practical, and it is the right fit for short-lived, read-once sharing. It is **not** meant to protect a message that sits around for a long time, or to hold up against a determined attacker who has obtained a copy of the stored data. Use RedLink for things that will be **opened soon and then changed or discarded**, like a temporary password or a one-time code.
-- **A compromised device is a compromised message.** Malware, a hostile browser extension or someone looking over a shoulder can see a message once it is on screen. RedLink can't protect what is already unlocked on a device that isn't safe.
-- **You trust the site you're visiting.** As with every website that encrypts in the browser, the page itself is code delivered to you. Run your own copy, and keep the accounts that control it safe.
-- **Some information is visible.** The link name, creation time and whether someone failed to open it are stored in readable form. **Don't put secrets in the link name.**
-- **Copying defeats read-once.** Once a message is unlocked, the person who opened it can copy, screenshot or forward it.
-
----
-
 ## ✅ Good habits
 
 - Use the **two-channel** option for anything sensitive.
-- Pick a **forgettable link name** that doesn't describe the secret.
-- **Change a shared password afterward** whenever you can.
 - If a recipient says *"it's already gone"*, treat the message as read by someone else and replace what it protected.
 - Choose **PIN** or **approved accounts only** unless you really want anyone to create links.
 
 ---
 
-## 🏠 If you run your own copy
-
-- Use the **publishable** key only and never the secret key.
-- In approved-accounts mode, **turn off public sign-ups** in Supabase.
-- Turn on **two-factor sign-in** for your GitHub, Netlify and Supabase accounts, since these control your site and your database.
-- Use a strong, unique password for the approved account.
-- Don't add new database tables or change permissions in the dashboard unless you know why. The provided setup file already locks everything down.
-- Re-run `supabase/setup.sql` and redeploy after updates from this project.
-
----
-
 ## 🐞 Found a problem?
 
-Please report it privately instead of posting it publicly. On GitHub, open the repository's **Security** tab and choose **Report a vulnerability**. (If you don't see that option, the repository owner needs to switch on *Private vulnerability reporting* in **Settings → Code security**.)
+Please report it privately instead of posting it publicly. On GitHub, open the repository's **Security** tab and choose **Report a vulnerability**.
 
 ---
 
