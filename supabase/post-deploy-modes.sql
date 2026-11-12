@@ -1,7 +1,0 @@
--- Reference for the installer (run through the Management API as the project owner).
--- OPEN:   select public.redlink_mode('open');
--- PIN:    update public.redlink_settings set mode='pin', pin_hash='<sha256 hex of "redlink-pin:" || pin, computed by the deployer>' where id=1;
---         delete from public.redlink_pin_fails;
---         (hashing server-side keeps the PIN out of SQL logs; redlink_mode('pin', '<pin>') also works by hand)
--- AUTH:   insert into public.redlink_users (email) values (lower('admin@example.com')) on conflict do nothing;
---         select public.redlink_mode('auth');
