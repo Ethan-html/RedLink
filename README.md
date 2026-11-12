@@ -134,11 +134,10 @@ In Supabase go to **Project Settings → API** and keep that tab open. You'll pa
 ### Step 4: Deploy with the Netlify button
 
 1. Put this folder in a **public** GitHub repo (the button needs to be able to read it).
-2. Click the button. It's already pointed at `Ethan-html/RedLink`:
+2. Click the button:
 
    [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Ethan-html/RedLink)
 
-   (If you fork or rename the repo, change the address at the end of that link to match.)
 3. Netlify connects to GitHub, copies the project, and **asks you for two values** in a form. Paste:
 
    | Form field | Paste |
@@ -146,17 +145,11 @@ In Supabase go to **Project Settings → API** and keep that tab open. You'll pa
    | `SUPABASE_URL` | the Project URL |
    | `SUPABASE_ANON_KEY` | the Publishable key |
 
-4. Click **Save & Deploy**. Build settings are already in `netlify.toml`.
-
-#### Why this can't go wrong silently
-
-Pasting the values in the wrong place (a build setting instead of a site environment variable, only for one scope, URL and key swapped, a stray quote or the secret key) used to produce a site that deployed fine but didn't work. Now the build **checks both values and refuses to deploy**, with a message in the deploy log that says what's wrong and where to fix it. A broken site never goes live.
-
-If you set it up by hand instead of the button, add the two variables under **Site configuration → Environment variables** (not the *Build command* box, not `netlify.toml`). Set **Scopes** to include **Builds** and use **Same value for all deploy contexts**. Then **Deploys → Trigger deploy → Clear cache and deploy site**.
+4. Click **Save & Deploy**.
 
 ### Step 5: Test it ✅
 
-1. Open your new site and create a test message. (In `auth` mode, sign in first.)
+1. Open your new site and create a test message.
 2. Copy the link and the passkey.
 3. Open the link in a private/incognito window and enter the passkey.
 4. Confirm you can read it, and that opening the link again says it's gone.
@@ -166,8 +159,6 @@ If you set it up by hand instead of the button, add the two variables under **Si
 ## 🧰 Managing links (auth mode)
 
 Signed-in approved accounts (the emails in `v_admins`) get a **Manage links** button, or visit `yoursite.com/admin`. It lists every live link (never the message) and lets you **burn** any of them early.
-
-`admin` is a reserved name and can't be used as a link name.
 
 ---
 
@@ -186,8 +177,7 @@ redlink/
 └── icon.svg, REDLINK*.png      ← branding
 ```
 
-Only the website files get published. Your SQL and scripts are never exposed.
-
+Only the website files get published.
 ---
 
 ## ❓ Troubleshooting
