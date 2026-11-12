@@ -213,6 +213,25 @@
   .key-meta { color: var(--red-soft); font-size: .9rem; margin: 12px 2px 18px; }
   .actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .demo { margin-top: 14px; font-size: .8rem; color: var(--ember); }
+  .share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .share-actions .ghost { width: 100%; text-align: center; padding: 12px 10px; }
+  .tip { margin: 14px 2px 0; font-size: .78rem; color: var(--muted); }
+  .tip summary { list-style: none; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; color: var(--muted); border-radius: 4px; }
+  .tip summary::-webkit-details-marker { display: none; }
+  .tip summary:hover { color: var(--text); }
+  .tip summary:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+  .tip summary svg { transition: transform .2s ease; }
+  .tip[open] summary svg { transform: rotate(90deg); }
+  .tip dl { margin: 8px 0 0; display: grid; gap: 6px; line-height: 1.4; }
+  .tip dt { display: inline; color: var(--red-soft); font-weight: 500; }
+  .tip dd { display: inline; margin: 0; }
+  .tip dd::after { content: ""; display: block; }
+
+  /* one-click link: "can only be viewed once" screen */
+  .ready { text-align: center; padding: 8px 4px 22px; }
+  .ready .ready-ic { width: 58px; height: 58px; margin: 0 auto 14px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,194,102,.12); border: 1px solid rgba(255,194,102,.45); color: var(--warn); }
+  .ready strong { display: block; font: 700 1.3rem var(--head); margin-bottom: 8px; }
+  .ready p { margin: 0 auto; max-width: 400px; color: var(--muted); font-size: .94rem; }
 
   /* loader (chain links close and open) + invalid-link states */
   .loader { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px; padding: 22px 0 12px; }
@@ -510,10 +529,20 @@
       <div class="label">Your passkey</div>
       <div class="key" id="key" aria-live="polite"></div>
       <div class="key-meta" id="keyMeta"></div>
-      <div class="actions">
+      <div class="share-actions">
+        <button class="ghost" id="copyFull" type="button">Copy full link</button>
+        <button class="ghost" id="copyLink" type="button">Copy link only</button>
         <button class="ghost" id="copy" type="button">Copy passkey</button>
         <button class="ghost" id="again" type="button">Create another</button>
       </div>
+      <details class="tip">
+        <summary><svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 1.5 6.5 5 3 8.5"/></svg>Which one?</summary>
+        <dl>
+          <div><dt>Full link</dt> <dd>has the passkey built in (encoded). One click to open. Anyone with it can read the message.</dd></div>
+          <div><dt>Link only</dt> <dd>no passkey inside. Send the passkey separately.</dd></div>
+          <div><dt>Passkey</dt> <dd>just the passkey, for the link-only option.</dd></div>
+        </dl>
+      </details>
       <div class="demo" id="demo" hidden>Demo mode: nothing was sent. Add your Supabase URL and key in the script to go live.</div>
     </section>
 
@@ -527,6 +556,15 @@
       <span class="sr-only" id="checkingText">Looking up this link…</span>
       <div class="loader-bar"><i></i></div>
     </div>
+
+    <section id="readyBox" hidden>
+      <div class="ready">
+        <div class="ready-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+        <strong>This message can only be viewed once</strong>
+        <p>As soon as you view it, it is decrypted and permanently deleted. Make sure you’re ready to read and copy it.</p>
+      </div>
+      <button class="btn" id="viewGo" type="button">View message</button>
+    </section>
 
     <form id="openForm" novalidate hidden>
       <div class="ok deny" id="deny" hidden role="alert">
@@ -908,6 +946,17 @@ async function copyTo(btn, text, idle) {
   setTimeout(() => { btn.textContent = idle; }, 2200);
 }
 
+// The link people open. With a passkey it becomes  site.com/name#Passkey-Words-123
+// The passkey is base64url-encoded so it isn't sitting there as readable words.
+// (Encoding only hides it from a glance; it is not encryption.)
+// Everything after # stays in the browser and is never sent to any server.
+function shareUrl(id, passkey) {
+  const base = /^https?:$/.test(location.protocol)
+    ? location.origin + "/" + id
+    : location.href.split(/[?#]/)[0] + "?id=" + id;
+  return passkey ? base + "#" + b64u(new TextEncoder().encode(passkey)) : base;
+}
+
 /* ---------- Which page? ---------- */
 // domain.com/my-link opens a RedLink. domain.com/ (or any other path) creates one.
 // For local testing without server rewrites, use  redlink.html?id=my-link
@@ -998,6 +1047,10 @@ form.addEventListener("submit", async (e) => {
     $("keyMeta").textContent = "Copy it now. You can’t revisit this.";
     $("copy").textContent = "Copy passkey";
     $("copy").onclick = () => copyTo($("copy"), passkey, "Copy passkey");
+    $("copyLink").textContent = "Copy link only";
+    $("copyLink").onclick = () => copyTo($("copyLink"), shareUrl(id), "Copy link only");
+    $("copyFull").textContent = "Copy full link";
+    $("copyFull").onclick = () => copyTo($("copyFull"), shareUrl(id, passkey), "Copy full link");
     await scrambleReveal($("key"), passkey);
   } catch (ex) {
     if (ex instanceof GateError) {          // the server said the PIN / session is no good
@@ -1393,6 +1446,19 @@ if (OPEN_ID) {
 
   let canCreate = false;
 
+  // A link made with "Copy full link" carries its passkey after the #. Grab it, then wipe it from
+  // the address bar so it isn't left in the URL. Nothing is sent or deleted until the button is pressed.
+  let hashKey = null;
+  try {
+    const h = decodeURIComponent(location.hash.replace(/^#/, ""));
+    let dec = null;
+    try { dec = new TextDecoder("utf-8", { fatal: true }).decode(b64uDecode(h)); } catch { /* not base64 */ }
+    if (dec && isPasskeyFormat(dec)) hashKey = dec;
+    else if (isPasskeyFormat(h)) hashKey = h;          // older links with the plain passkey
+  } catch { /* bad escape: ignore */ }
+  if (location.hash) { try { history.replaceState(null, "", location.pathname + location.search); } catch { /* ignore */ } }
+  const readyBox = $("readyBox");
+
   // The "Create a RedLink" button only exists when anyone is allowed to create.
   async function createAllowed() {
     if (!configured()) return true;
@@ -1401,7 +1467,7 @@ if (OPEN_ID) {
   }
 
   function showGone(kind) {
-    $("checking").hidden = true; openForm.hidden = true; openSteps.hidden = true;
+    $("checking").hidden = true; openForm.hidden = true; openSteps.hidden = true; readyBox.hidden = true;
     const locked = kind === "locked";
     $("goneTitle").textContent = locked ? "Too many wrong passkeys" : "This link isn’t valid";
     $("goneText").textContent = (locked
@@ -1426,8 +1492,12 @@ if (OPEN_ID) {
       if (typeof r.data !== "string" || !r.data.includes(".")) return showGone("gone");
       metaString = r.data;
       $("checking").hidden = true;
-      openForm.hidden = false; openForm.classList.add("fade-in");
-      $("passkey").focus();
+      if (hashKey) {                         // one-click link: ask first, don't open anything yet
+        readyBox.hidden = false; readyBox.classList.add("fade-in");
+      } else {
+        openForm.hidden = false; openForm.classList.add("fade-in");
+        $("passkey").focus();
+      }
     } catch (ex) {
       showOffline(ex, lookup);
     }
@@ -1457,7 +1527,12 @@ if (OPEN_ID) {
 
   $("passkey").addEventListener("input", () => { $("passkey").classList.remove("invalid"); $("openErr").textContent = ""; });
 
-  openForm.addEventListener("submit", async (e) => {
+  $("viewGo").addEventListener("click", () => {
+    const k = hashKey; hashKey = null;       // single use
+    if (k) unlock(k);
+  });
+
+  openForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const passkey = $("passkey").value;
     if (!passkey.trim()) {
@@ -1470,6 +1545,11 @@ if (OPEN_ID) {
       $("passkey").classList.remove("invalid"); void $("passkey").offsetWidth; $("passkey").classList.add("invalid");
       return $("passkey").focus();
     }
+    unlock(passkey);
+  });
+
+  async function unlock(passkey) {
+    readyBox.hidden = true;
     $("openErr").textContent = ""; $("deny").hidden = true;
     $("openGo").disabled = true; $("openGo").textContent = "Working…";
     openForm.hidden = true; openSteps.hidden = false; openSteps.classList.add("fade-in");
@@ -1518,7 +1598,7 @@ if (OPEN_ID) {
       $("openErr").textContent = (ex && ex.message ? ex.message + " " : "") + (current === "decrypt" ? "" : "Try again.");
       $("openGo").disabled = false; $("openGo").textContent = "Try again";
     }
-  });
+  }
 
   lookup();
 }

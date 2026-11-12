@@ -26,8 +26,8 @@ RedLink lets you send a password, API key, or private note without leaving it si
 
 1. You type your message and pick a link.
 2. RedLink encrypts it and gives you a **link** plus a **passkey** like `Maple-River-Cloud-482`.
-3. You send the link and the passkey (ideally through different channels).
-4. The recipient opens the link, enters the passkey, reads the message, and **it's deleted**.
+3. You share it, either as one **full link** (click and go) or as a link and passkey sent separately.
+4. The recipient opens it, clicks **View message**, reads it, and **it's deleted**.
 
 It's a static website (one HTML file) backed by a small Supabase database. No server to maintain.
 
@@ -46,6 +46,22 @@ It's a static website (one HTML file) backed by a small Supabase database. No se
 | 🔑 **Only the public key is used** | The build refuses to deploy if you accidentally paste a secret / `service_role` key. |
 
 > **Bottom line:** even the person running the database can't read your messages.
+
+---
+
+## 🔗 Sharing options
+
+After you create a link you get three copy buttons (plus a small **Which one?** dropdown that explains them):
+
+| Button | What you get | Best for |
+|---|---|---|
+| **Copy full link** | `yoursite.com/my-link#V2ludGVyLVRpbWJlci1UaWdlci0zMDg` | One click to open. Easy to paste into an email. |
+| **Copy link only** | `yoursite.com/my-link` | Sending the link and passkey through **different** channels. |
+| **Copy passkey** | `Maple-River-Cloud-482` | The second half of the separate-channels option. |
+
+**Opening a full link:** nothing is opened or deleted just by clicking it. The recipient first sees a *"This message can only be viewed once"* screen and has to press **View message**. That also stops chat apps and email scanners from burning the link while they make a preview.
+
+**Is the passkey in the link safe?** The part after the `#` is never sent over the internet. Your browser keeps it locally, so the server, hosting and logs never see it, and it's removed from the address bar as soon as the page loads. The passkey is also base64-encoded so it isn't sitting there as readable words. Note that encoding only hides it at a glance and is not encryption, so anyone who has the full link can read the message. Use separate channels for anything extra sensitive.
 
 ---
 
