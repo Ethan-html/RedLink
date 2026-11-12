@@ -61,7 +61,7 @@ After you create a link you get three copy buttons (plus a small **Which one?** 
 
 **Opening a full link:** nothing is opened or deleted just by clicking it. The recipient first sees a *"This message can only be viewed once"* screen and has to press **View message**. That also stops chat apps and email scanners from burning the link while they make a preview.
 
-**Is the passkey in the link safe?** The part after the `#` is never sent over the internet. Your browser keeps it locally, so the server, hosting and logs never see it, and it's removed from the address bar as soon as the page loads. The passkey is also base64-encoded so it isn't sitting there as readable words. Note that encoding only hides it at a glance and is not encryption, so anyone who has the full link can read the message. Use separate channels for anything extra sensitive.
+**Is the passkey in the link safe?** The part after the `#` is never sent over the internet. Your browser keeps it locally, so the server, hosting and logs never see it, and it's removed from the address bar the moment the page loads. It's held only in that browser tab's memory (so a reload still works) and is cleared when the message is viewed or the tab is closed. The passkey is also base64-encoded so it isn't sitting there as readable words. Note that encoding only hides it at a glance and is not encryption, so anyone who has the full link can read the message. Use separate channels for anything extra sensitive.
 
 ---
 
@@ -98,7 +98,7 @@ select public.redlink_mode('pin', 'your-pin-here');
 
 **👤 Auth: only approved accounts can create** (best for private use)
 ```sql
-insert into public.redlink_users (email) values (lower('you@example.com'));
+insert into public.redlink_users (email) values (lower('you@example.com')) on conflict do nothing;
 select public.redlink_mode('auth');
 ```
 Then in Supabase go to **Authentication → Users → Invite user** and invite that same email. Also turn off public sign-ups under **Authentication → Sign In / Providers** so nobody else can register.

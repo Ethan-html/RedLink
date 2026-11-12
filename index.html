@@ -1446,8 +1446,10 @@ if (OPEN_ID) {
 
   let canCreate = false;
 
-  // A link made with "Copy full link" carries its passkey after the #. Grab it, then wipe it from
-  // the address bar so it isn't left in the URL. Nothing is sent or deleted until the button is pressed.
+  // A link made with "Copy full link" carries its passkey after the #. It is wiped from the address bar
+  // straight away and held only in this tab's memory (sessionStorage), so a reload still works. It is
+  // cleared when View message is pressed or the tab closes. Nothing is sent or deleted before the button.
+  const SKEY = "redlink-key:" + OPEN_ID;
   let hashKey = null;
   try {
     const h = decodeURIComponent(location.hash.replace(/^#/, ""));
@@ -1456,6 +1458,10 @@ if (OPEN_ID) {
     if (dec && isPasskeyFormat(dec)) hashKey = dec;
     else if (isPasskeyFormat(h)) hashKey = h;          // older links with the plain passkey
   } catch { /* bad escape: ignore */ }
+  try {
+    if (hashKey) sessionStorage.setItem(SKEY, hashKey);
+    else { const k = sessionStorage.getItem(SKEY); if (k && isPasskeyFormat(k)) hashKey = k; }
+  } catch { /* storage blocked: the key just won't survive a reload */ }
   if (location.hash) { try { history.replaceState(null, "", location.pathname + location.search); } catch { /* ignore */ } }
   const readyBox = $("readyBox");
 
@@ -1468,6 +1474,7 @@ if (OPEN_ID) {
 
   function showGone(kind) {
     $("checking").hidden = true; openForm.hidden = true; openSteps.hidden = true; readyBox.hidden = true;
+    try { sessionStorage.removeItem(SKEY); } catch { /* ignore */ }
     const locked = kind === "locked";
     $("goneTitle").textContent = locked ? "Too many wrong passkeys" : "This link isn’t valid";
     $("goneText").textContent = (locked
@@ -1529,6 +1536,7 @@ if (OPEN_ID) {
 
   $("viewGo").addEventListener("click", () => {
     const k = hashKey; hashKey = null;       // single use
+    try { sessionStorage.removeItem(SKEY); } catch { /* ignore */ }
     if (k) unlock(k);
   });
 
