@@ -45,7 +45,9 @@ It's a static website (one HTML file) backed by a small Supabase database. No se
 | 🧱 **Locked-down database** | Tables are closed to the public. The site can only call a small set of fixed functions. |
 | 🔑 **Only the public key is used** | The build refuses to deploy if you accidentally paste a secret / `service_role` key. |
 
-> **Bottom line:** even the person running the database can't read your messages.
+> **Bottom line:** the database and the website host only ever hold scrambled text, never a readable message or the passkey.
+>
+> 📖 **For more detailed Security infomation** See **[SECURITY.md](SECURITY.md)**.
 
 ---
 
@@ -67,81 +69,108 @@ After you create a link you get three copy buttons (plus a small **Which one?** 
 
 ## 🚀 Setup
 
-**You need:** a free [Supabase](https://supabase.com) account and a free [Netlify](https://netlify.com) account. About 10 minutes.
+**You need:** a free [Supabase](https://supabase.com) account, a free [Netlify](https://netlify.com) account, and a free GitHub account. About 10 minutes.
 
-### Step 1: Create the database
+### Step 1: Create the Supabase project
 
-1. In Supabase, click **New project** and wait for it to finish starting.
-2. Open **SQL Editor** in the left menu.
-3. Run these three files **in order**. Open each one, copy everything, paste it in, click **Run**:
-   1. `supabase/migrations/0001_schema.sql`
-   2. `supabase/migrations/0002_functions.sql`
-   3. `supabase/migrations/0003_cleanup_job.sql`
+In Supabase click **New project** and wait for it to finish starting.
 
-All three are safe to run more than once.
+### Step 2: Run the SQL file (and pick who can create links)
 
-> 💡 If you see a notice about `pg_cron` in step 3, that's fine. Expired links are hidden automatically and cleaned up whenever someone creates a link.
+Everything lives in: `supabase/setup.sql`.
 
-### Step 2: Choose who can create links
+1. Open `supabase/setup.sql` in any text editor and scroll to the bottom to **PART 4: CHOOSE WHO CAN CREATE LINKS**. Edit the three values:
 
-Opening a link is always possible with the passkey. This setting controls who can **create** them. Run **one** of these in the SQL Editor:
+   ```sql
+   v_mode   text := 'auth';   -- 'open', 'pin' or 'auth'
+   v_pin    text := '';       -- only for 'pin'
+   v_admins text := '';       -- only for 'auth', e.g. 'you@example.com'
+   ```
 
-**🌍 Open: anyone can create**
+2. Fill them in using the table below. Keep the quote marks.
+
+   | Security type | Who can create links | Set these |
+   |---|---|---|
+   | 🌍 `'open'` | Anyone | Nothing else. Leave `v_pin` and `v_admins` empty. |
+   | 🔢 `'pin'` | People who know the PIN | `v_pin := 'your-pin'` (4 or more characters) |
+   | 👤 `'auth'` | Only approved accounts (best for private use) | `v_admins := 'you@example.com'` (several emails: `'a@x.com, b@x.com'`) |
+
+3. In Supabase open **SQL Editor → New query**, paste the **whole file**, and click **Run**.
+4. Check the result table at the bottom. `create_mode` should be what you chose. In `auth` mode `approved_emails` should list your email.
+
+> If PART 4 has a mistake (empty email, PIN too short, a typo in the mode) the script stops with a plain-English error and **changes nothing**. Fix the value and run it again. The whole file is safe to run any number of times.
+
+> 💡 A notice about `pg_cron` is fine. Expired links are hidden automatically and cleaned up whenever someone creates a link.
+
+#### Extra steps for `auth` mode (the admin user)
+
+`v_admins` only says who is **allowed**. The account itself must also exist in Supabase, and the site signs in with **email + password**, so create it with a password. Do **not** use *Invite user*, because that sends a link to a page this site doesn't have.
+
+1. In Supabase go to **Authentication → Users → Add user → Create new user**.
+2. Enter the **same email** you put in `v_admins`, and choose a password.
+3. Turn **Auto Confirm User** on, then click **Create user**.
+4. Go to **Authentication → Sign In / Providers** and turn **off** *Allow new users to sign up* so nobody else can register.
+
+That account signs in on your site, creates links, and gets the **Manage links** button (also at `yoursite.com/admin`).
+
+#### Changing it later
+
+Edit the three values in PART 4 and run the file again, or run one line on its own:
+
 ```sql
-select public.redlink_mode('open');
+select public.redlink_mode('open');                  -- anyone
+select public.redlink_mode('pin', 'new-pin');        -- PIN
+select public.redlink_mode('auth');                  -- approved accounts only
+insert into public.redlink_users (email) values ('another@example.com') on conflict do nothing;   -- add an admin
+delete from public.redlink_users where email = 'old@example.com';                                  -- remove an admin
 ```
 
-**🔢 PIN: people need a PIN first** (use your own, 4+ characters)
-```sql
-select public.redlink_mode('pin', 'your-pin-here');
-```
+> ⚠️ Until a mode is chosen the site defaults to `auth` with no approved users, so nobody can create links. That's intentional.
 
-**👤 Auth: only approved accounts can create** (best for private use)
-```sql
-insert into public.redlink_users (email) values (lower('you@example.com')) on conflict do nothing;
-select public.redlink_mode('auth');
-```
-Then in Supabase go to **Authentication → Users → Invite user** and invite that same email. Also turn off public sign-ups under **Authentication → Sign In / Providers** so nobody else can register.
+### Step 3: Copy your two Supabase values
 
-> ⚠️ Until you pick a mode, the site defaults to `auth` with no approved users, so nobody can create links. That's intentional.
+In Supabase go to **Project Settings → API** and keep that tab open. You'll paste two things in the next step:
 
-### Step 3: Grab your two keys
+- **Project URL** → looks like `https://xxxx.supabase.co`
+- **Publishable key** (also called the *anon* key) → starts with `sb_publishable_`
 
-In Supabase go to **Project Settings → API** and copy:
+> 🛑 **Never use the `secret` or `service_role` key.** The build stops with an error if you do.
 
-- **Project URL** → this is `SUPABASE_URL`
-- **Publishable key** (also called the *anon* key) → this is `SUPABASE_ANON_KEY`
+### Step 4: Deploy with the Netlify button
 
-> 🛑 **Never use the `secret` or `service_role` key.** The build will stop with an error if you do.
+1. Put this folder in a **public** GitHub repo (the button needs to be able to read it).
+2. Click the button. It's already pointed at `Ethan-html/RedLink`:
 
-### Step 4: Deploy on Netlify
+   [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Ethan-html/RedLink)
 
-1. Put this folder in a GitHub repo (or use Netlify's drag-and-drop for the folder).
-2. In Netlify: **Add new site → Import an existing project** and pick the repo.
-3. The build settings are already in `netlify.toml`, so leave them as they are.
-4. Before deploying, open **Site configuration → Environment variables** and add:
+   (If you fork or rename the repo, change the address at the end of that link to match.)
+3. Netlify connects to GitHub, copies the project, and **asks you for two values** in a form. Paste:
 
-| Name | Value |
-|---|---|
-| `SUPABASE_URL` | your Project URL |
-| `SUPABASE_ANON_KEY` | your Publishable key |
+   | Form field | Paste |
+   |---|---|
+   | `SUPABASE_URL` | the Project URL |
+   | `SUPABASE_ANON_KEY` | the Publishable key |
 
-5. Click **Deploy**.
+4. Click **Save & Deploy**. Build settings are already in `netlify.toml`.
+
+#### Why this can't go wrong silently
+
+Pasting the values in the wrong place (a build setting instead of a site environment variable, only for one scope, URL and key swapped, a stray quote or the secret key) used to produce a site that deployed fine but didn't work. Now the build **checks both values and refuses to deploy**, with a message in the deploy log that says what's wrong and where to fix it. A broken site never goes live.
+
+If you set it up by hand instead of the button, add the two variables under **Site configuration → Environment variables** (not the *Build command* box, not `netlify.toml`). Set **Scopes** to include **Builds** and use **Same value for all deploy contexts**. Then **Deploys → Trigger deploy → Clear cache and deploy site**.
 
 ### Step 5: Test it ✅
 
-1. Open your new site and create a test message.
+1. Open your new site and create a test message. (In `auth` mode, sign in first.)
 2. Copy the link and the passkey.
 3. Open the link in a private/incognito window and enter the passkey.
 4. Confirm you can read it, and that opening the link again says it's gone.
-
-If the site loads but shows demo behaviour, the two environment variables are missing. Add them and redeploy.
 
 ---
 
 ## 🧰 Managing links (auth mode)
 
-Signed-in approved accounts get a **Manage links** button, or visit `yoursite.com/admin`. It lists every live link (never the message) and lets you **burn** any of them early.
+Signed-in approved accounts (the emails in `v_admins`) get a **Manage links** button, or visit `yoursite.com/admin`. It lists every live link (never the message) and lets you **burn** any of them early.
 
 `admin` is a reserved name and can't be used as a link name.
 
@@ -152,15 +181,12 @@ Signed-in approved accounts get a **Manage links** button, or visit `yoursite.co
 ```
 redlink/
 ├── index.html                  ← the entire website
-├── netlify.toml                ← build + security headers
+├── SECURITY.md                 ← detailed, plain-English security page
+├── netlify.toml                ← build, security headers, deploy-button form
 ├── docs/readme-logo.png        ← logo used in this README
 ├── _redirects                  ← routing for link URLs
-├── scripts/make-config.js      ← build step: writes config, publishes only public files
-├── supabase/
-│   ├── migrations/             ← run these 3 in order
-│   └── post-deploy-modes.sql   ← reference notes for the create modes
-├── tools/
-│   └── migrate-existing-db.sql ← only for an older database (see below)
+├── scripts/make-config.js      ← build step: checks your two values, writes config, publishes only public files
+├── supabase/setup.sql          ← ONE file: database + who can create links
 ├── setup/redlink.project.json  ← optional automated-installer recipe
 └── icon.svg, REDLINK*.png      ← branding
 ```
@@ -173,11 +199,14 @@ Only the website files get published. Your SQL and scripts are never exposed.
 
 | Problem | Fix |
 |---|---|
-| Build fails with *"is a secret/service_role key"* | You used the wrong key. Use the **publishable/anon** key. |
-| Nobody can create links | You haven't chosen a mode yet (Step 2), or in auth mode your email isn't in `redlink_users`. |
-| "Couldn't save to the database" | Make sure all three migrations ran, in order, with no errors. |
+| Netlify build fails with **"REDLINK SETUP PROBLEM"** | Read the lines marked `x` in the deploy log. They say exactly what's wrong (missing, swapped, wrong key type). Fix it under **Site configuration → Environment variables**, with **Builds** ticked in Scopes, then **Clear cache and deploy site**. |
+| Build says it is a *secret/service_role key* | Use the **publishable/anon** key, never the secret one. |
+| `setup.sql` stops with an error about PART 4 | The error says which value to fix (mode, PIN, or email). Nothing was changed, so fix it and run the file again. |
+| Nobody can create links | Check the result table at the bottom of `setup.sql`: is `create_mode` what you want? In `auth` mode, is your email in `approved_emails`? |
+| Can't sign in (`auth` mode) | The user must be created with a password under **Authentication → Users → Add user → Create new user** (Auto Confirm on), using the same email as `v_admins`. |
+| "Couldn't save to the database" | Run the whole `supabase/setup.sql` again and look for errors. |
 | Changed the env variables but nothing changed | Trigger a new deploy. The values are baked in at build time. |
-| Upgrading an old database | Run the three migrations first, then `tools/migrate-existing-db.sql` once. |
+| Upgrading an old database that has the unused "sites" tables | In `supabase/setup.sql`, remove the `/*` and `*/` around the OPTIONAL block at the very bottom, then run the file again. |
 
 ---
 

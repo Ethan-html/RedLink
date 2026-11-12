@@ -5,6 +5,13 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Used by the "Deploy to Netlify" button in the README: Netlify copies the repo to your
+# GitHub, then shows a form asking for exactly these two values. Do NOT put the real
+# values in this file. They belong in Netlify > Site configuration > Environment variables.
+[template.environment]
+  SUPABASE_URL = "Project URL from Supabase (Project Settings > API). Looks like https://xxxx.supabase.co"
+  SUPABASE_ANON_KEY = "Publishable key from Supabase (Project Settings > API). Starts with sb_publishable_. NEVER the secret key."
+
 [[headers]]
   for = "/config.js"
   [headers.values]
