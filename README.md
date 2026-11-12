@@ -60,11 +60,6 @@ After you create a link you get three copy buttons (plus a small **Which one?** 
 | **Copy full link** | `yoursite.com/my-link#V2ludGVyLVRpbWJlci1UaWdlci0zMDg` | One click to open. Easy to paste into an email. |
 | **Copy link only** | `yoursite.com/my-link` | Sending the link and passkey through **different** channels. |
 | **Copy passkey** | `Maple-River-Cloud-482` | The second half of the separate-channels option. |
-
-**Opening a full link:** nothing is opened or deleted just by clicking it. The recipient first sees a *"This message can only be viewed once"* screen and has to press **View message**. That also stops chat apps and email scanners from burning the link while they make a preview.
-
-**Is the passkey in the link safe?** The part after the `#` is never sent over the internet. Your browser keeps it locally, so the server, hosting and logs never see it, and it's removed from the address bar the moment the page loads. It's held only in that browser tab's memory (so a reload still works) and is cleared when the message is viewed or the tab is closed. The passkey is also base64-encoded so it isn't sitting there as readable words. Note that encoding only hides it at a glance and is not encryption, so anyone who has the full link can read the message. Use separate channels for anything extra sensitive.
-
 ---
 
 ## 🚀 Setup
